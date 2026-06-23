@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(npx create-vite@latest . --template react-ts --force)",
+      "Bash(npx create-vite@latest keybind-vault --template react-ts)",
+      "Bash(npm install *)",
+      "Bash(ls -la \\\\\"D:/Learning_project/Keybind Vault/public/\\\\\", description: *)",
+      "Bash(rm -rf \\\\\"D:/Learning_project/Keybind Vault/src/assets/\\\\\", description: *)",
+      "Bash(cd \\\\\"D:/Learning_project/Keybind Vault\\\\\" && npx tsc --noEmit 2>&1, \\\\\"description\\\\\": \\\\\"Type check the project\\\\\"}, \\\\\"timeout\\\\\": 30000 *)",
+      "Bash(cd \\\\\"D:/Learning_project/Keybind Vault\\\\\" && npx tsc --noEmit 2>&1, \\\\\"description\\\\\", description: *)",
+      "Bash(cd \\\\\"D:/Learning_project/Keybind Vault\\\\\" && npx tsc --noEmit 2>&1 *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(cat \"C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\D--Learning-project-Keybind-Vault\\\\\\\\e166f81b-ec7b-4c57-beb3-f9c17e2c20e0\\\\\\\\tasks\\\\\\\\b6w1w09rr.output\")",
+      "Bash(npx vite *)",
+      "Bash(cd \\\\\"D:/Learning_project/Keybind Vault\\\\\" && npm run build 2>&1\\\\\", description: *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
