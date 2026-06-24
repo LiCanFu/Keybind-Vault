@@ -1,8 +1,7 @@
-import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
+import { Fragment, useState, useRef, useEffect } from 'react';
 import type { Keybinding, KeyCategory } from '../types';
 import { KEY_DISPLAY_NAMES, KEYBOARD_ROWS, CATEGORY_LABELS, CATEGORY_ORDER } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
-import { ActionIcons } from '../icons';
 
 interface Props {
   keybindings: Keybinding[];
@@ -12,12 +11,12 @@ interface Props {
   onAddKeybinding?: (kb: Keybinding) => void;
 }
 
-// 弹出编辑框的位置
-interface PopoverState {
-  keyCode: string;
-  x: number;
-  y: number;
-  bindingIndex: number; // -1 表示新增
+// 当前正在编辑的键位
+interface EditingKey {
+  code: string;
+  index: number; // -1 = 新增
+  action: string;
+  category: KeyCategory;
 }
 
 export default function KeyboardLayout({
@@ -27,99 +26,69 @@ export default function KeyboardLayout({
   onRemoveKeybinding,
   onAddKeybinding,
 }: Props) {
-  const [popover, setPopover] = useState<PopoverState | null>(null);
-  const [editAction, setEditAction] = useState('');
-  const [editCategory, setEditCategory] = useState<KeyCategory>('other');
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const actionInputRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState<EditingKey | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const kbMap = new Map<string, { binding: Keybinding; index: number }>();
   keybindings.forEach((kb, idx) => kbMap.set(kb.key, { binding: kb, index: idx }));
 
-  // 点击外部关闭弹框
+  // 编辑态自动聚焦
   useEffect(() => {
-    if (!popover) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setPopover(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [popover]);
-
-  // 弹框打开时聚焦输入框
-  useEffect(() => {
-    if (popover) {
-      setTimeout(() => actionInputRef.current?.focus(), 50);
+    if (editing) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 30);
     }
-  }, [popover]);
+  }, [editing]);
 
-  const handleKeyClick = useCallback(
-    (keyCode: string, e: React.MouseEvent) => {
-      const entry = kbMap.get(keyCode);
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const container = (e.currentTarget as HTMLElement).closest('.keyboard-container')?.getBoundingClientRect();
+  // 点击键帽 → 开始编辑
+  const handleClick = (code: string) => {
+    // 再次点击同一个键 → 关闭
+    if (editing?.code === code) {
+      setEditing(null);
+      return;
+    }
 
-      if (!container) return;
+    const entry = kbMap.get(code);
+    if (entry) {
+      setEditing({
+        code,
+        index: entry.index,
+        action: entry.binding.action,
+        category: entry.binding.category,
+      });
+    } else if (onAddKeybinding) {
+      setEditing({ code, index: -1, action: '', category: 'other' });
+    }
+  };
 
-      // 如果点击的是已打开的同一个键，关闭
-      if (popover?.keyCode === keyCode) {
-        setPopover(null);
-        return;
-      }
-
-      if (entry) {
-        // 已绑定 → 编辑
-        setPopover({
-          keyCode,
-          x: rect.left - container.left + rect.width / 2,
-          y: rect.top - container.top,
-          bindingIndex: entry.index,
-        });
-        setEditAction(entry.binding.action);
-        setEditCategory(entry.binding.category);
-      } else if (onAddKeybinding) {
-        // 未绑定 → 新增
-        setPopover({
-          keyCode,
-          x: rect.left - container.left + rect.width / 2,
-          y: rect.top - container.top,
-          bindingIndex: -1,
-        });
-        setEditAction('');
-        setEditCategory('other');
-      }
-    },
-    [kbMap, popover, onAddKeybinding],
-  );
-
-  const handleSave = () => {
-    if (!popover || !editAction.trim()) return;
-    const kb: Keybinding = { key: popover.keyCode, action: editAction.trim(), category: editCategory };
-    if (popover.bindingIndex >= 0) {
-      onUpdateKeybinding?.(popover.bindingIndex, kb);
+  // 保存
+  const save = () => {
+    if (!editing || !editing.action.trim()) {
+      setEditing(null);
+      return;
+    }
+    const kb: Keybinding = { key: editing.code, action: editing.action.trim(), category: editing.category };
+    if (editing.index >= 0) {
+      onUpdateKeybinding?.(editing.index, kb);
     } else {
       onAddKeybinding?.(kb);
     }
-    setPopover(null);
+    setEditing(null);
   };
 
-  const handleDelete = () => {
-    if (!popover || popover.bindingIndex < 0) return;
+  // 删除
+  const remove = () => {
+    if (!editing || editing.index < 0) return;
     if (confirm('删除这个键位？')) {
-      onRemoveKeybinding?.(popover.bindingIndex);
-      setPopover(null);
+      onRemoveKeybinding?.(editing.index);
+      setEditing(null);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSave();
-    if (e.key === 'Escape') setPopover(null);
-  };
-
   return (
-    <div className="keyboard-container" role="img" aria-label="键盘布局可视化（点击键位可直接编辑）">
+    <div className="keyboard-container" role="img" aria-label="键盘布局可视化（点击键帽可直接编辑）">
       {KEYBOARD_ROWS.map((row, ri) => (
         <div key={ri} className="keyboard-row">
           {row.map((key) => {
@@ -128,54 +97,89 @@ export default function KeyboardLayout({
             const isBound = highlightKeys.has(key.code);
             const catColor = kb ? `var(--cat-${kb.category})` : undefined;
             const CatIcon = kb ? CATEGORY_ICONS_MAP[kb.category] : null;
-            const isPopoverOpen = popover?.keyCode === key.code;
+            const isEditing = editing?.code === key.code;
 
             return (
               <Fragment key={key.code}>
                 {key.ox ? (
                   <div className="keycap-spacer" style={{ width: key.ox * 48 }} />
                 ) : null}
+
+                {/* 键帽 */}
                 <div
                   className={`keycap ${isBound ? 'keycap-bound' : ''}`}
                   style={{
                     width: key.w * 48 - 4,
                     height: 48,
-                    border: isPopoverOpen
+                    border: isEditing
                       ? '2px solid var(--accent-hover)'
                       : isBound
                         ? `2px solid ${catColor || 'var(--accent)'}`
                         : '1px solid var(--border)',
-                    background: isPopoverOpen
-                      ? 'var(--bg-tertiary)'
+                    background: isEditing
+                      ? 'var(--accent)22'
                       : isBound
                         ? `${catColor || 'var(--accent)'}22`
                         : 'var(--bg-tertiary)',
                     color: isBound ? catColor || 'var(--accent)' : 'var(--text-secondary)',
                     flexShrink: 0,
-                    position: 'relative',
                     cursor: isBound || onAddKeybinding ? 'pointer' : 'default',
                   }}
                   role="button"
                   tabIndex={0}
                   aria-label={kb ? `${key.label}: ${kb.action}（点击编辑）` : `${key.label}（点击绑定）`}
-                  onClick={(e) => handleKeyClick(key.code, e)}
+                  onClick={() => handleClick(key.code)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      handleKeyClick(key.code, e as unknown as React.MouseEvent);
+                      handleClick(key.code);
                     }
                   }}
                 >
-                  {isBound && CatIcon && (
-                    <span className="keycap-icon">
-                      <CatIcon size={12} />
-                    </span>
+                  {/* 未编辑状态 */}
+                  {!isEditing && (
+                    <>
+                      {isBound && CatIcon && (
+                        <span className="keycap-icon"><CatIcon size={12} /></span>
+                      )}
+                      <span className="keycap-label">{key.label}</span>
+                      {isBound && kb && (
+                        <span className="keycap-action" style={{ color: catColor || 'var(--accent)' }}>
+                          {kb.action.length > 6 ? kb.action.slice(0, 6) + '…' : kb.action}
+                        </span>
+                      )}
+                      {/* 未绑定但可添加的键，显示 + */}
+                      {!isBound && onAddKeybinding && (
+                        <span className="keycap-action" style={{ opacity: 0.3 }}>+</span>
+                      )}
+                    </>
                   )}
-                  <span className="keycap-label">{key.label}</span>
-                  {isBound && kb && (
-                    <span className="keycap-action" style={{ color: catColor || 'var(--accent)' }}>
-                      {kb.action.length > 6 ? kb.action.slice(0, 6) + '…' : kb.action}
-                    </span>
+
+                  {/* 编辑状态 — 键帽内直接变成输入框 */}
+                  {isEditing && (
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="input"
+                      value={editing.action}
+                      onChange={(e) => setEditing({ ...editing, action: e.target.value })}
+                      placeholder="输入动作..."
+                      style={{
+                        width: '100%',
+                        fontSize: 10,
+                        padding: '2px 3px',
+                        textAlign: 'center',
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--accent)',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') save();
+                        if (e.key === 'Escape') setEditing(null);
+                        e.stopPropagation();
+                      }}
+                      onBlur={save}
+                    />
                   )}
                 </div>
               </Fragment>
@@ -184,70 +188,51 @@ export default function KeyboardLayout({
         </div>
       ))}
 
-      {/* 弹出编辑框 */}
-      {popover && (
+      {/* 底部操作栏 — 编辑态时显示分类切换和保存/删除 */}
+      {editing && (
         <div
-          ref={popoverRef}
           className="card"
           style={{
-            position: 'absolute',
-            left: popover.x,
-            top: popover.y - 8,
-            transform: 'translate(-50%, -100%)',
-            zIndex: 50,
-            padding: 12,
-            minWidth: 260,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            marginTop: 8,
+            padding: '8px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
           }}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={handleKeyDown}
         >
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
-            <kbd className="kbd kbd-sm">{KEY_DISPLAY_NAMES[popover.keyCode] || popover.keyCode}</kbd>
-            {popover.bindingIndex >= 0 ? ' — 编辑键位' : ' — 绑定新键位'}
-          </div>
+          <kbd className="kbd kbd-sm" style={{ minWidth: 40, fontSize: 11 }}>
+            {KEY_DISPLAY_NAMES[editing.code] || editing.code}
+          </kbd>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div>
-              <label className="editor-label">动作描述</label>
-              <input
-                ref={actionInputRef}
-                type="text"
-                className="input"
-                placeholder="如 前进, 换弹, 技能Q..."
-                value={editAction}
-                onChange={(e) => setEditAction(e.target.value)}
-              />
-            </div>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>分类：</span>
+          <select
+            className="input"
+            value={editing.category}
+            onChange={(e) => setEditing({ ...editing, category: e.target.value as KeyCategory })}
+            style={{ width: 'auto', fontSize: 12, padding: '2px 6px' }}
+          >
+            {CATEGORY_ORDER.map((cat) => (
+              <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
+            ))}
+          </select>
 
-            <div>
-              <label className="editor-label">分类</label>
-              <select
-                className="input"
-                value={editCategory}
-                onChange={(e) => setEditCategory(e.target.value as KeyCategory)}
-              >
-                {CATEGORY_ORDER.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {CATEGORY_LABELS[cat]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-              {popover.bindingIndex >= 0 && (
-                <button className="btn btn-sm btn-danger" onClick={handleDelete}>
-                  <ActionIcons.Trash size={12} /> 删除
-                </button>
-              )}
-              <button className="btn btn-sm" onClick={() => setPopover(null)}>
-                <ActionIcons.X size={12} /> 取消
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+            {editing.index >= 0 && (
+              <button className="btn btn-sm btn-danger" onClick={remove}>
+                删除
               </button>
-              <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={!editAction.trim()}>
-                <ActionIcons.Save size={12} /> {popover.bindingIndex >= 0 ? '保存' : '绑定'}
-              </button>
-            </div>
+            )}
+            <button className="btn btn-sm" onClick={() => setEditing(null)}>
+              取消
+            </button>
+            <button
+              className="btn btn-sm btn-primary"
+              onClick={save}
+              disabled={!editing.action.trim()}
+            >
+              {editing.index >= 0 ? '保存' : '绑定'}
+            </button>
           </div>
         </div>
       )}
