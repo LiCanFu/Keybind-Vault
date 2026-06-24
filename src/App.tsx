@@ -196,7 +196,6 @@ export default function App() {
           <GameDetail
             key={selectedGame.id}
             game={selectedGame}
-            allGames={games}
             onBack={() => navigateTo('dashboard')}
             onUpdateName={updateGameName}
             onAddKeybinding={addKeybinding}

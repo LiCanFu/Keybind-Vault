@@ -8,7 +8,6 @@ import KeyboardLayout from './KeyboardLayout';
 
 interface Props {
   game: GameConfig;
-  allGames: GameConfig[];
   onBack: () => void;
   onUpdateName: (id: string, name: string) => void;
   onAddKeybinding: (gameId: string, kb: Keybinding) => void;
@@ -18,6 +17,12 @@ interface Props {
 
 type IndexedKeybinding = Keybinding & { origIdx: number };
 
+// 分类选项（模块常量，避免每次渲染重建）
+const CATEGORY_OPTIONS = CATEGORY_ORDER.map((cat) => ({
+  value: cat,
+  label: CATEGORY_LABELS[cat],
+}));
+
 // ============================================================
 // 可编辑单元格组件 — 点击文字直接进入编辑模式
 // ============================================================
@@ -26,7 +31,6 @@ function EditableCell({
   className,
   style,
   onSave,
-  onInput,
   type = 'text',
   options,
 }: {
@@ -34,7 +38,6 @@ function EditableCell({
   className?: string;
   style?: React.CSSProperties;
   onSave: (v: string) => void;
-  onInput?: (v: string) => void;
   type?: 'text' | 'select';
   options?: { value: string; label: string }[];
 }) {
@@ -99,7 +102,7 @@ function EditableCell({
       type="text"
       className="input"
       value={draft}
-      onChange={(e) => { setDraft(e.target.value); onInput?.(e.target.value); }}
+      onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit();
@@ -150,11 +153,6 @@ export default function GameDetail({
     () => new Set(game.keybindings.map((k) => k.key)),
     [game.keybindings],
   );
-
-  const categoryOptions = CATEGORY_ORDER.map((cat) => ({
-    value: cat,
-    label: CATEGORY_LABELS[cat],
-  }));
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
@@ -238,16 +236,10 @@ export default function GameDetail({
                     {KEY_DISPLAY_NAMES[kb.key] || kb.key}
                   </kbd>
 
-                  {/* 动作名称 — 点击直接编辑，输入时自动推断分类 */}
+                  {/* 动作名称 — 点击直接编辑，保存时自动推断分类 */}
                   <EditableCell
                     value={kb.action}
                     className="kb-action"
-                    onInput={(newAction) => {
-                      const inferred = inferCategory(newAction);
-                      if (inferred && inferred !== kb.category) {
-                        onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction, category: inferred });
-                      }
-                    }}
                     onSave={(newAction) => {
                       const inferred = inferCategory(newAction);
                       onUpdateKeybinding(game.id, kb.origIdx, {
@@ -264,7 +256,7 @@ export default function GameDetail({
                     className="badge"
                     style={{ fontSize: 11, cursor: 'pointer' }}
                     type="select"
-                    options={categoryOptions}
+                    options={CATEGORY_OPTIONS}
                     onSave={(newCat) =>
                       onUpdateKeybinding(game.id, kb.origIdx, { ...kb, category: newCat as KeyCategory })
                     }
