@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import type { GameConfig } from './types';
 import { useGameConfigs } from './hooks/useGameConfigs';
+import { NavIcons, ActionIcons } from './icons';
 import GameDetail from './components/GameDetail';
 import CompareView from './components/CompareView';
 import './App.css';
@@ -31,19 +32,24 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <p style={{ color: 'var(--text-secondary)' }}>加载中...</p>
+      <div className="flex items-center" style={{ justifyContent: 'center', height: '100vh' }}>
+        <p className="text-secondary">加载中...</p>
       </div>
     );
   }
 
+  const navigateTo = (p: Page) => {
+    setPage(p);
+    if (p !== 'detail') setSelectedGame(null);
+  };
+
   return (
     <div className="app">
       {/* 侧边栏 */}
-      <aside className="sidebar">
+      <aside className="sidebar" role="navigation" aria-label="主导航">
         <div className="sidebar-header">
           <h1 className="logo">
-            <span style={{ fontSize: 24 }}>🎮</span>
+            <NavIcons.Gamepad2 size={24} />
             <span>Keybind Vault</span>
           </h1>
           <p className="subtitle">游戏键盘配置备忘录</p>
@@ -52,44 +58,47 @@ export default function App() {
         <nav className="sidebar-nav">
           <button
             className={`nav-item ${page === 'dashboard' ? 'active' : ''}`}
-            onClick={() => { setPage('dashboard'); setSelectedGame(null); }}
+            onClick={() => navigateTo('dashboard')}
+            aria-current={page === 'dashboard' ? 'page' : undefined}
           >
-            <span>🏠</span> 游戏列表
+            <NavIcons.Home size={16} /> 游戏列表
           </button>
           <button
             className={`nav-item ${page === 'compare' ? 'active' : ''}`}
-            onClick={() => { setPage('compare'); setSelectedGame(null); }}
+            onClick={() => navigateTo('compare')}
+            aria-current={page === 'compare' ? 'page' : undefined}
           >
-            <span>🔍</span> 键位对比
+            <NavIcons.Compare size={16} /> 键位对比
           </button>
         </nav>
 
         <div className="sidebar-actions">
           <button
-            className="btn btn-primary"
-            style={{ width: '100%' }}
+            className="btn btn-primary w-full"
             onClick={() => setShowNewDialog(true)}
+            aria-label="新建游戏配置"
           >
-            ➕ 新建配置
+            <ActionIcons.Plus size={14} /> 新建配置
           </button>
         </div>
 
         <div className="sidebar-footer">
-          <button className="btn btn-sm" onClick={handleExport} title="导出全部配置">
-            📤 导出
+          <button className="btn btn-sm" onClick={handleExport} title="导出全部配置" aria-label="导出配置">
+            <ActionIcons.Download size={12} /> 导出
           </button>
           <button
             className="btn btn-sm"
             onClick={() => fileInputRef.current?.click()}
             title="导入配置"
+            aria-label="导入配置"
           >
-            📥 导入
+            <ActionIcons.Upload size={12} /> 导入
           </button>
           <input
             ref={fileInputRef}
             type="file"
             accept=".json"
-            style={{ display: 'none' }}
+            className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
@@ -98,8 +107,8 @@ export default function App() {
                 try {
                   handleImport(reader.result as string);
                   alert('导入成功！');
-                } catch (err: any) {
-                  alert('导入失败：' + err.message);
+                } catch (err: unknown) {
+                  alert('导入失败：' + (err instanceof Error ? err.message : String(err)));
                 }
               };
               reader.readAsText(file);
@@ -112,52 +121,52 @@ export default function App() {
               if (confirm('确定要重置为默认配置吗？所有修改将丢失！')) reset();
             }}
             title="重置为默认"
+            aria-label="重置配置"
           >
-            🔄 重置
+            <ActionIcons.Reset size={12} /> 重置
           </button>
         </div>
       </aside>
 
       {/* 主区域 */}
-      <main className="main">
+      <main className="main" role="main">
         {page === 'dashboard' && (
           <div style={{ padding: 24 }}>
-            <h2 style={{ marginBottom: 8 }}>🎮 我的游戏</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 20, fontSize: 13 }}>
+            <h2 style={{ marginBottom: 8 }}>
+              <NavIcons.Gamepad2 size={20} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+              我的游戏
+            </h2>
+            <p className="text-secondary text-sm" style={{ marginBottom: 20 }}>
               共 {games.length} 个游戏配置，点击进入查看和编辑键位
             </p>
 
-            <div className="game-grid">
+            <div className="game-grid" role="list" aria-label="游戏配置列表">
               {games.map((game) => (
                 <div
                   key={game.id}
                   className="game-card card"
-                  onClick={() => {
-                    setSelectedGame(game);
-                    setPage('detail');
-                  }}
+                  onClick={() => { setSelectedGame(game); setPage('detail'); }}
                   style={{ cursor: 'pointer' }}
+                  role="listitem"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { setSelectedGame(game); setPage('detail'); } }}
+                  aria-label={`${game.name} - ${game.keybindings.length} 个键位`}
                 >
                   <div className="game-card-header">
                     <h3 className="game-card-name">{game.name}</h3>
                     <span className="badge badge-genre">{game.genre}</span>
                   </div>
-                  <p className="game-card-meta">
-                    {game.keybindings.length} 个键位
-                  </p>
-                  <p className="game-card-meta" style={{ fontSize: 11 }}>
+                  <p className="game-card-meta">{game.keybindings.length} 个键位</p>
+                  <p className="game-card-meta text-xs">
                     更新于 {new Date(game.updatedAt).toLocaleString('zh-CN')}
                   </p>
-                  <div style={{ marginTop: 8, display: 'flex', gap: 4 }}>
+                  <div className="game-card-actions">
                     <button
                       className="btn btn-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedGame(game);
-                        setPage('detail');
-                      }}
+                      onClick={(e) => { e.stopPropagation(); setSelectedGame(game); setPage('detail'); }}
+                      aria-label={`编辑 ${game.name}`}
                     >
-                      ✏️ 编辑
+                      <ActionIcons.Edit size={12} /> 编辑
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
@@ -165,8 +174,9 @@ export default function App() {
                         e.stopPropagation();
                         if (confirm(`确定删除 "${game.name}" 吗？`)) removeGame(game.id);
                       }}
+                      aria-label={`删除 ${game.name}`}
                     >
-                      🗑️ 删除
+                      <ActionIcons.Trash size={12} /> 删除
                     </button>
                   </div>
                 </div>
@@ -174,9 +184,7 @@ export default function App() {
             </div>
 
             {games.length === 0 && (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 60 }}>
-                还没有游戏配置，点击左侧「新建配置」开始
-              </p>
+              <p className="empty-state">还没有游戏配置，点击左侧「新建配置」开始</p>
             )}
           </div>
         )}
@@ -186,7 +194,7 @@ export default function App() {
             key={selectedGame.id}
             game={selectedGame}
             allGames={games}
-            onBack={() => { setPage('dashboard'); setSelectedGame(null); }}
+            onBack={() => navigateTo('dashboard')}
             onUpdateName={updateGameName}
             onAddKeybinding={addKeybinding}
             onUpdateKeybinding={updateKeybinding}
@@ -194,20 +202,21 @@ export default function App() {
           />
         )}
 
-        {page === 'compare' && (
-          <CompareView games={games} />
-        )}
+        {page === 'compare' && <CompareView games={games} />}
       </main>
 
       {/* 新建游戏对话框 */}
       {showNewDialog && (
-        <div className="modal-overlay" onClick={() => setShowNewDialog(false)}>
+        <div className="modal-overlay" onClick={() => setShowNewDialog(false)} role="dialog" aria-modal="true" aria-label="新建游戏配置">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginBottom: 16 }}>新建游戏配置</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3>新建游戏配置</h3>
+              <button className="btn btn-icon btn-sm" onClick={() => setShowNewDialog(false)} aria-label="关闭">
+                <ActionIcons.X size={14} />
+              </button>
+            </div>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                游戏名称
-              </label>
+              <label className="editor-label">游戏名称</label>
               <input
                 type="text"
                 className="input"
@@ -218,9 +227,7 @@ export default function App() {
               />
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                游戏类型
-              </label>
+              <label className="editor-label">游戏类型</label>
               <select
                 className="input"
                 value={newGenre}
@@ -232,10 +239,8 @@ export default function App() {
                 <option value="Other">Other（其他）</option>
               </select>
             </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn" onClick={() => setShowNewDialog(false)}>
-                取消
-              </button>
+            <div className="flex gap-8" style={{ justifyContent: 'flex-end' }}>
+              <button className="btn" onClick={() => setShowNewDialog(false)}>取消</button>
               <button
                 className="btn btn-primary"
                 disabled={!newName.trim()}
@@ -246,7 +251,7 @@ export default function App() {
                   setShowNewDialog(false);
                 }}
               >
-                创建
+                <ActionIcons.Plus size={14} /> 创建
               </button>
             </div>
           </div>

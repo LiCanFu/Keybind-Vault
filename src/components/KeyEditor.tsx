@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Keybinding, KeyCategory } from '../types';
-import { CATEGORY_LABELS, KEY_DISPLAY_NAMES } from '../types';
+import { CATEGORY_LABELS, KEY_DISPLAY_NAMES, CATEGORY_ORDER } from '../types';
+import { ActionIcons } from '../icons';
 
 interface Props {
   onSave: (kb: Keybinding) => void;
@@ -21,10 +22,6 @@ const QUICK_KEYS = [
   'Mouse0','Mouse1','Mouse2','Mouse3','Mouse4',
   'Backquote','Minus','Equal','BracketLeft','BracketRight','Backslash',
   'Semicolon','Quote','Comma','Period','Slash','MetaLeft',
-];
-
-const CATEGORIES: KeyCategory[] = [
-  'movement','combat','abilities','items','communication','ui','other',
 ];
 
 export default function KeyEditor({ onSave, onCancel, initial }: Props) {
@@ -54,51 +51,38 @@ export default function KeyEditor({ onSave, onCancel, initial }: Props) {
     }
   };
 
-  const containerStyle = isEdit
-    ? {
-        padding: '8px 12px',
-        display: 'flex' as const,
-        alignItems: 'center' as const,
-        gap: 8,
-        flexWrap: 'wrap' as const,
-      }
-    : {
-        marginTop: 16,
-        padding: 16,
-      };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && key && action) handleSave();
+    if (e.key === 'Escape' && onCancel) onCancel();
+  };
 
   return (
-    <div className="card" style={containerStyle}>
+    <div
+      className={`card ${isEdit ? 'editor-inline' : 'editor-container'}`}
+      onKeyDown={handleKeyDown}
+    >
       {!isEdit && (
-        <h3 style={{ fontSize: 14, marginBottom: 12 }}>➕ 添加新键位</h3>
+        <h3 className="editor-title"><ActionIcons.Plus size={16} /> 添加新键位</h3>
       )}
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', flex: 1 }}>
+      <div className="editor-fields">
         {/* 按键 */}
-        <div style={{ flex: isEdit ? '0 0 120px' : '0 0 auto', minWidth: 120 }}>
-          {!isEdit && (
-            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-              按键
-            </label>
-          )}
+        <div style={{ flex: isEdit ? '0 0 120px' : '0 0 auto' }}>
+          {!isEdit && <label className="editor-label">按键</label>}
           <input
             type="text"
-            className="input"
+            className={`input input-mono ${isEdit ? '' : ''}`}
             placeholder="如 KeyQ, Mouse0..."
             value={key}
             onChange={(e) => setKey(e.target.value)}
             onFocus={() => setShowQuick(true)}
-            style={{ fontFamily: 'monospace', fontSize: isEdit ? 12 : 13 }}
+            style={{ fontSize: isEdit ? 12 : 13 }}
           />
         </div>
 
         {/* 动作 */}
         <div style={{ flex: isEdit ? 1 : 2, minWidth: 140 }}>
-          {!isEdit && (
-            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-              动作描述
-            </label>
-          )}
+          {!isEdit && <label className="editor-label">动作描述</label>}
           <input
             type="text"
             className="input"
@@ -111,52 +95,40 @@ export default function KeyEditor({ onSave, onCancel, initial }: Props) {
 
         {/* 分类 */}
         <div style={{ flex: '0 0 auto', minWidth: 90 }}>
-          {!isEdit && (
-            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-              分类
-            </label>
-          )}
+          {!isEdit && <label className="editor-label">分类</label>}
           <select
             className="input"
             value={category}
             onChange={(e) => setCategory(e.target.value as KeyCategory)}
             style={{ fontSize: isEdit ? 12 : 13 }}
           >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {CATEGORY_LABELS[cat]}
-              </option>
+            {CATEGORY_ORDER.map((cat) => (
+              <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
             ))}
           </select>
         </div>
 
         <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={!key || !action}>
-          {isEdit ? '💾 保存' : '添加'}
+          {isEdit ? <><ActionIcons.Save size={12} /> 保存</> : <><ActionIcons.Plus size={12} /> 添加</>}
         </button>
 
         {isEdit && onCancel && (
           <button className="btn btn-sm" onClick={onCancel}>
-            取消
+            <ActionIcons.X size={12} /> 取消
           </button>
         )}
       </div>
 
       {/* 快速选键面板 */}
       {showQuick && (
-        <div style={{ marginTop: 12, width: '100%' }}>
-          <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>
-            快速选择按键（点击填入）：
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+        <div className="quick-keys-bar">
+          <p className="quick-keys-hint">快速选择按键（点击填入）：</p>
+          <div className="quick-keys-grid">
             {QUICK_KEYS.map((k) => (
               <button
                 key={k}
-                className={`btn btn-sm ${key === k ? 'btn-primary' : ''}`}
-                onClick={() => {
-                  setKey(k);
-                  setShowQuick(false);
-                }}
-                style={{ fontFamily: 'monospace', fontSize: 11, padding: '2px 6px' }}
+                className={`btn btn-sm quick-key ${key === k ? 'btn-primary' : ''}`}
+                onClick={() => { setKey(k); setShowQuick(false); }}
                 title={KEY_DISPLAY_NAMES[k] || k}
               >
                 {KEY_DISPLAY_NAMES[k] || k}

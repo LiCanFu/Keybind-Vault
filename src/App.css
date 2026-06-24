@@ -37,6 +37,10 @@ html, body, #root {
   font-size: 14px;
 }
 
+/* ============================================================
+   布局
+   ============================================================ */
+
 .app { display: flex; height: 100vh; }
 
 .sidebar {
@@ -66,14 +70,23 @@ html, body, #root {
 
 .main { flex: 1; overflow-y: auto; background: var(--bg-primary); }
 
+/* ============================================================
+   卡片
+   ============================================================ */
+
 .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); }
 
 .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.game-card { padding: 16px; transition: border-color 0.15s, transform 0.1s; }
-.game-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.game-card { padding: 16px; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+.game-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108, 140, 255, 0.1); }
 .game-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .game-card-name { font-size: 15px; font-weight: 600; }
 .game-card-meta { font-size: 12px; color: var(--text-secondary); }
+.game-card-actions { margin-top: 8px; display: flex; gap: 4px; }
+
+/* ============================================================
+   按钮
+   ============================================================ */
 
 .btn {
   display: inline-flex; align-items: center; gap: 4px;
@@ -89,6 +102,11 @@ html, body, #root {
 .btn-danger { color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn-sm { padding: 4px 8px; font-size: 11px; }
+.btn-icon { padding: 4px; }
+
+/* ============================================================
+   表单
+   ============================================================ */
 
 .input {
   padding: 6px 10px; border-radius: var(--radius-sm);
@@ -98,13 +116,24 @@ html, body, #root {
 }
 .input:focus { border-color: var(--accent); }
 select.input { cursor: pointer; }
+.input-title { font-size: 22px; font-weight: 700; border: none; background: transparent; padding: 0; width: auto; min-width: 200px; }
+.input-mono { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+
+/* ============================================================
+   标签
+   ============================================================ */
 
 .badge {
-  display: inline-block; padding: 2px 8px; border-radius: 100px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 100px;
   font-size: 11px; font-weight: 500; background: var(--bg-tertiary);
   color: var(--text-secondary); border: 1px solid var(--border);
 }
 .badge-genre { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ============================================================
+   模态框
+   ============================================================ */
 
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.6);
@@ -115,10 +144,133 @@ select.input { cursor: pointer; }
   border-radius: 12px; padding: 24px; min-width: 360px; max-width: 480px;
 }
 
-.keycap {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  border-radius: 6px; font-size: 11px; cursor: default; transition: all 0.15s; overflow: hidden;
+/* ============================================================
+   详情页
+   ============================================================ */
+
+.detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.detail-count { color: var(--text-secondary); font-size: 13px; }
+
+.search-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 200px; }
+
+.category-header { font-size: 15px; margin-bottom: 8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.kb-list { display: flex; flex-direction: column; gap: 4px; }
+
+.kb-item {
+  padding: 8px 12px; display: flex; align-items: center; gap: 12px;
+  transition: border-color 0.15s, background 0.15s;
 }
+.kb-item:hover { border-color: var(--accent); }
+
+.kbd {
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 2px 8px;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 13px; font-weight: 600; min-width: 70px; text-align: center; color: var(--accent);
+}
+.kbd-sm { padding: 1px 8px; font-size: 12px; border-radius: 4px; min-width: 60px; }
+
+.kb-action { flex: 1; }
+.kb-actions { display: flex; gap: 4px; }
+
+.empty-state { text-align: center; color: var(--text-secondary); padding: 40px; }
+
+/* ============================================================
+   键盘可视化
+   ============================================================ */
+
+.keyboard-container {
+  background: var(--bg-secondary); border-radius: 12px;
+  padding: 16px 12px; margin-bottom: 20px; overflow-x: auto;
+}
+.keyboard-row { display: flex; gap: 4px; margin-bottom: 4px; justify-content: flex-start; }
+
+.keycap {
+  border-radius: 6px; font-size: 11px;
+  cursor: default; transition: all 0.15s; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.keycap-bound {
+  border-width: 2px; border-style: solid; font-weight: 600;
+  cursor: pointer;
+}
+.keycap-bound:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.keycap-spacer { background: transparent; }
+
+.keycap-icon { font-size: 12px; margin-bottom: -2px; }
+.keycap-label { line-height: 1.2; text-align: center; }
+.keycap-action {
+  font-size: 9px; max-width: 100%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; line-height: 1.1;
+}
+
+/* ============================================================
+   对比视图
+   ============================================================ */
+
+.compare-header { padding: 24px; max-width: 900px; margin: 0 auto; }
+.compare-title { margin-bottom: 16px; }
+.compare-desc { color: var(--text-secondary); margin-bottom: 16px; font-size: 13px; }
+
+.compare-select-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
+.compare-vs { font-weight: 700; color: var(--text-secondary); }
+.compare-select { flex: 1; }
+
+.compare-stats { display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; }
+.compare-list { display: flex; flex-direction: column; gap: 3px; }
+
+.compare-row {
+  padding: 6px 12px; display: flex; align-items: center; gap: 12px;
+  transition: border-color 0.15s;
+}
+.compare-row:hover { border-color: var(--accent); }
+.compare-row-same { opacity: 0.5; }
+.compare-status { font-size: 12px; color: var(--text-secondary); width: 50px; text-align: right; }
+
+/* ============================================================
+   编辑器
+   ============================================================ */
+
+.editor-container { margin-top: 16px; padding: 16px; }
+.editor-inline { padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.editor-title { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.editor-fields { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; flex: 1; }
+.editor-field { min-width: 120px; }
+.editor-field-inline { min-width: 100px; }
+.editor-label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+
+.quick-keys-bar { margin-top: 12px; width: 100%; }
+.quick-keys-hint { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+.quick-keys-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+.quick-key { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 11px; padding: 2px 6px; }
+
+/* ============================================================
+   通用
+   ============================================================ */
+
+.hidden { display: none; }
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-4 { gap: 4px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+.w-full { width: 100%; }
+.text-center { text-align: center; }
+.text-secondary { color: var(--text-secondary); }
+.text-xs { font-size: 11px; }
+.text-sm { font-size: 13px; }
+
+/* ============================================================
+   响应式
+   ============================================================ */
 
 @media (max-width: 768px) {
   .app { flex-direction: column; }
@@ -128,6 +280,10 @@ select.input { cursor: pointer; }
   .sidebar-footer { margin-left: auto; }
   .game-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   滚动条
+   ============================================================ */
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
