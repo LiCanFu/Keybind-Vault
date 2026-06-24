@@ -30,21 +30,16 @@ function EditableCell({
   className,
   style,
   onSave,
-  type = 'text',
-  options,
 }: {
   value: string;
   className?: string;
   style?: React.CSSProperties;
   onSave: (v: string) => void;
-  type?: 'text' | 'select';
-  options?: { value: string; label: string }[];
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
-  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // 进入编辑态时，用当前 value 初始化 draft
   const startEditing = () => {
     setDraft(value);
     setEditing(true);
@@ -53,9 +48,7 @@ function EditableCell({
   useEffect(() => {
     if (editing) {
       inputRef.current?.focus();
-      if (inputRef.current instanceof HTMLInputElement) {
-        inputRef.current.select();
-      }
+      inputRef.current?.select();
     }
   }, [editing]);
 
@@ -64,7 +57,6 @@ function EditableCell({
     setEditing(false);
   };
 
-  // 显示态 — 直接渲染 value，不依赖 draft
   if (!editing) {
     return (
       <span
@@ -80,29 +72,6 @@ function EditableCell({
     );
   }
 
-  // 编辑态 — select 模式
-  if (type === 'select' && options) {
-    return (
-      <select
-        ref={inputRef as React.RefObject<HTMLSelectElement>}
-        className="input"
-        value={draft}
-        onChange={(e) => {
-          const newVal = e.target.value;
-          setDraft(newVal);
-          onSave(newVal);
-          setEditing(false);
-        }}
-        style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    );
-  }
-
-  // 编辑态 — 文本输入模式
   return (
     <input
       ref={inputRef as React.RefObject<HTMLInputElement>}
