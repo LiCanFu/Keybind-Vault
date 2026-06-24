@@ -30,6 +30,7 @@ export default function KeyboardLayout({
 }: Props) {
   const [editing, setEditing] = useState<EditingKey | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
 
   const kbMap = new Map<string, { binding: Keybinding; index: number }>();
   keybindings.forEach((kb, idx) => kbMap.set(kb.key, { binding: kb, index: idx }));
@@ -113,7 +114,7 @@ export default function KeyboardLayout({
                   className={`keycap ${isBound ? 'keycap-bound' : ''}`}
                   style={{
                     width: key.w * 48 - 4,
-                    height: 48,
+                    height: isBound ? 56 : 48,
                     border: isEditing
                       ? '2px solid var(--accent-hover)'
                       : isBound
@@ -147,10 +148,44 @@ export default function KeyboardLayout({
                       )}
                       <span className="keycap-label">{key.label}</span>
                       {isBound && kb && (
-                        <span className="keycap-action" style={{ color: catColor || 'var(--accent)' }}>
-                          {kb.action.length > 6 ? kb.action.slice(0, 6) + '…' : kb.action}
-                        </span>
+                        <>
+                          <span className="keycap-action" style={{ color: catColor || 'var(--accent)' }}>
+                            {kb.action.length > 6 ? kb.action.slice(0, 6) + '…' : kb.action}
+                          </span>
+                          {/* 分类 — 原生 select，直接点击切换 */}
+                          {onUpdateKeybinding && (
+                            <select
+                              value={kb.category}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                const newCat = e.target.value as KeyCategory;
+                                onUpdateKeybinding(entry!.index, { ...kb, category: newCat });
+                              }}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="keycap-category"
+                              style={{
+                                fontSize: 8,
+                                padding: '0 1px',
+                                border: 'none',
+                                borderRadius: 3,
+                                background: 'transparent',
+                                color: catColor || 'var(--accent)',
+                                cursor: 'pointer',
+                                width: '100%',
+                                textAlign: 'center',
+                                lineHeight: 1.2,
+                              }}
+                              aria-label={`${kb.action} 的分类`}
+                            >
+                              {CATEGORY_ORDER.map((cat) => (
+                                <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
+                              ))}
+                            </select>
+                          )}
+                        </>
                       )}
+
                       {/* 未绑定但可添加的键，显示 + */}
                       {!isBound && onAddKeybinding && (
                         <span className="keycap-action" style={{ opacity: 0.3 }}>+</span>
@@ -190,7 +225,16 @@ export default function KeyboardLayout({
                         if (e.key === 'Escape') setEditing(null);
                         e.stopPropagation();
                       }}
-                      onBlur={save}
+                      onBlur={(e) => {
+                        // 如果焦点转移到底部操作栏（分类 select 等），不立即保存
+                        const rt = e.relatedTarget as HTMLElement | null;
+                        if (rt && bottomBarRef.current?.contains(rt)) return;
+                        // relatedTarget 为 null 时用延时兜底（某些浏览器 select 不设 relatedTarget）
+                        setTimeout(() => {
+                          if (bottomBarRef.current?.contains(document.activeElement)) return;
+                          save();
+                        }, 0);
+                      }}
                     />
                   )}
                 </div>
@@ -203,6 +247,7 @@ export default function KeyboardLayout({
       {/* 底部操作栏 — 编辑态时显示分类切换和保存/删除 */}
       {editing && (
         <div
+          ref={bottomBarRef}
           className="card"
           style={{
             marginTop: 8,
