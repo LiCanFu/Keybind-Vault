@@ -88,8 +88,12 @@ function EditableCell({
         ref={inputRef as React.RefObject<HTMLSelectElement>}
         className="input"
         value={draft}
-        onChange={(e) => { setDraft(e.target.value); committedRef.current = true; onSave(e.target.value); setEditing(false); }}
-        onBlur={cancel}
+        onChange={(e) => {
+          const newVal = e.target.value;
+          setDraft(newVal);
+          onSave(newVal);
+          setEditing(false);
+        }}
         style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
       >
         {options.map((o) => (
