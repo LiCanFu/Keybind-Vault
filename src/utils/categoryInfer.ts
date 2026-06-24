@@ -11,9 +11,8 @@ const KEYWORD_RULES: [string[], KeyCategory, 'includes' | 'exact'][] = [
   [['前进', '后退', '左移', '右移', '走', '跑', '冲刺', '闪避', '翻滚', '跳跃', '蹲', '站立', '静步', '行走', '趴', '爬', '游泳', '飞行', '加速', '减速', 'move', 'walk', 'run', 'sprint', 'dodge', 'jump', 'crouch'], 'movement', 'includes'],
   // 战斗
   [['射击', '攻击', '开火', '瞄准', '开镜', '换弹', '装填', '近战', '格挡', '防御', '投掷', '扔', '丢', '切枪', '武器', '主武器', '副武器', '射击', '开枪', 'shoot', 'fire', 'aim', 'reload', 'melee', 'block', 'throw'], 'combat', 'includes'],
-  // 技能（单字母用精确匹配，中文用包含匹配）
-  [['技能', '大招', '必杀', '天赋', '召唤师', '闪现', '点燃', '治疗', '屏障', '虚弱', '净化', '惩戒', '传送', 'ghost', 'flash', 'ignite', 'heal', 'barrier', 'exhaust', 'cleanse', 'smite', 'teleport', 'ultimate'], 'abilities', 'includes'],
-  [['Q', 'W', 'E', 'R'], 'abilities', 'exact'], // 单字母精确匹配
+  // 技能
+  [['技能Q', '技能W', '技能E', '技能R', '技能1', '技能2', '技能3', '大招', '必杀', '天赋', '召唤师', '闪现', '点燃', '治疗', '屏障', '虚弱', '净化', '惩戒', '传送', 'ghost', 'flash', 'ignite', 'heal', 'barrier', 'exhaust', 'cleanse', 'smite', 'teleport', 'ultimate', 'ability'], 'abilities', 'includes'],
   // 物品
   [['物品', '装备', '道具', '背包', '使用', '拾取', '购买', '商店', '回城', '补给', '弹药', '手雷', '烟雾', '闪光', '燃烧瓶', '炸药', '陷阱', '地雷', '饰品', 'item', 'equipment', 'inventory', 'use', 'pickup', 'buy', 'shop'], 'items', 'includes'],
   // 通讯
