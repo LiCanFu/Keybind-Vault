@@ -18,7 +18,12 @@ export function loadGames(): GameConfig[] {
 
 export function saveGames(games: GameConfig[]): void {
   cachedGames = games;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+  } catch (err) {
+    // localStorage 满时（QuotaExceededError）降级处理
+    console.error('保存失败，localStorage 可能已满：', err);
+  }
 }
 
 export function clearCache(): void {

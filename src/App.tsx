@@ -24,11 +24,14 @@ export default function App() {
   } = useGameConfigs();
 
   const [page, setPage] = useState<Page>('dashboard');
-  const [selectedGame, setSelectedGame] = useState<GameConfig | null>(null);
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const [newGenre, setNewGenre] = useState<GameConfig['genre']>('FPS');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 从 games 实时派生，避免编辑后显示旧数据
+  const selectedGame = selectedGameId ? games.find((g) => g.id === selectedGameId) ?? null : null;
 
   if (loading) {
     return (
@@ -38,9 +41,9 @@ export default function App() {
     );
   }
 
-  const navigateTo = (p: Page) => {
+  const navigateTo = (p: Page, gameId?: string) => {
     setPage(p);
-    if (p !== 'detail') setSelectedGame(null);
+    setSelectedGameId(gameId ?? null);
   };
 
   return (
@@ -145,11 +148,11 @@ export default function App() {
                 <div
                   key={game.id}
                   className="game-card card"
-                  onClick={() => { setSelectedGame(game); setPage('detail'); }}
+                  onClick={() => navigateTo('detail', game.id)}
                   style={{ cursor: 'pointer' }}
                   role="listitem"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { setSelectedGame(game); setPage('detail'); } }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigateTo('detail', game.id); }}
                   aria-label={`${game.name} - ${game.keybindings.length} 个键位`}
                 >
                   <div className="game-card-header">
@@ -163,7 +166,7 @@ export default function App() {
                   <div className="game-card-actions">
                     <button
                       className="btn btn-sm"
-                      onClick={(e) => { e.stopPropagation(); setSelectedGame(game); setPage('detail'); }}
+                      onClick={(e) => { e.stopPropagation(); navigateTo('detail', game.id); }}
                       aria-label={`编辑 ${game.name}`}
                     >
                       <ActionIcons.Edit size={12} /> 编辑

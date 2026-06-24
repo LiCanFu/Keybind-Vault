@@ -64,13 +64,6 @@ export const CATEGORY_ICONS: Record<KeyCategory, string> = {
   other: '📌',
 };
 
-// --- 导入导出格式 ---
-export interface ExportData {
-  version: 1;
-  exportedAt: string;
-  games: GameConfig[];
-}
-
 // --- 按键显示名映射（用于键盘可视化） ---
 export const KEY_DISPLAY_NAMES: Record<string, string> = {
   Backquote: '`',

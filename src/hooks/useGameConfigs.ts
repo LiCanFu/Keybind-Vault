@@ -7,14 +7,15 @@ export function useGameConfigs() {
   const [games, setGames] = useState<GameConfig[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 初始化加载，首次使用时注入预设
+  // 初始化加载，首次使用时注入预设（深拷贝防止引用污染）
   useEffect(() => {
     let data = loadGames();
     if (data.length === 0) {
-      data = ALL_PRESETS;
+      data = structuredClone(ALL_PRESETS);
     }
     setGames(data);
-    setLoading(false);
+    // loading 在下一帧设为 false，确保首次持久化 effect 先执行
+    requestAnimationFrame(() => setLoading(false));
   }, []);
 
   // 状态变更时自动持久化（避免在每个 setter 内部手动写 localStorage）
