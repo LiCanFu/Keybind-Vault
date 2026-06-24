@@ -245,16 +245,20 @@ export default function GameDetail({
                     }
                   />
 
-                  <EditableCell
-                    value={CATEGORY_LABELS[kb.category]}
+                  {/* 分类 — 直接用原生 select，不经过 EditableCell */}
+                  <select
                     className="badge"
-                    style={{ fontSize: 11, cursor: 'pointer' }}
-                    type="select"
-                    options={CATEGORY_OPTIONS}
-                    onSave={(newCat) =>
-                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, category: newCat as KeyCategory })
+                    value={kb.category}
+                    onChange={(e) =>
+                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, category: e.target.value as KeyCategory })
                     }
-                  />
+                    style={{ fontSize: 11, cursor: 'pointer', padding: '2px 6px', border: '1px solid var(--border)', borderRadius: 100, background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                    aria-label={`${kb.action} 的分类`}
+                  >
+                    {CATEGORY_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
 
                   <button
                     className="btn btn-sm btn-icon"

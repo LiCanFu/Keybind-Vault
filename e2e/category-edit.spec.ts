@@ -13,22 +13,25 @@ test.describe('分类编辑', () => {
     await page.click('.game-card >> nth=0');
     await page.waitForSelector('.detail-header', { timeout: 5000 });
 
+    // 找到蹲下这一行的分类 select
     const crouchItem = page.locator('.kb-item', { hasText: '蹲下' });
-    const badge = crouchItem.locator('.badge');
-    expect(await badge.textContent()).toBe('移动');
+    const categorySelect = crouchItem.locator('select');
+    expect(await categorySelect.inputValue()).toBe('movement');
 
-    await badge.click();
-    const select = crouchItem.locator('select.input');
-    await expect(select).toBeVisible();
-    await select.selectOption({ label: '其他' });
-    await page.waitForTimeout(500);
+    // 选择「其他」
+    await categorySelect.selectOption('other');
+    await page.waitForTimeout(300);
 
-    const storedCategory = await page.evaluate(() => {
+    // 验证 select 值已变
+    expect(await categorySelect.inputValue()).toBe('other');
+
+    // 验证 localStorage 已持久化
+    const stored = await page.evaluate(() => {
       const raw = localStorage.getItem('keybind-vault-games');
       const games = JSON.parse(raw!);
       return games.flatMap((g: any) => g.keybindings).find((kb: any) => kb.action === '蹲下')?.category;
     });
-    expect(storedCategory).toBe('other');
+    expect(stored).toBe('other');
   });
 
   test('键盘视图底部操作栏切换分类后保存生效', async ({ page }) => {
