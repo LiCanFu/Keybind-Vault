@@ -49,14 +49,21 @@
 
 ### Git 提交记录
 ```
-8ceaf1a 🎮 Initial commit: Keybind Vault — 游戏键盘配置备忘录
-a7822cf ⚡ React best-practices 优化 + 代码质量审查修复
-f065672 ✨ UI 全面优化：Lucide 图标 + CSS 类提取 + 无障碍
-9bd2dca 🎯 键盘可视化支持直接点击编辑
-c2a99f6 ✏️ 键位列表改为直接点击编辑模式
-4116e6e 🔧 键盘视图重构：键帽内直接行内编辑
-56bedf8 📋 补充 CLAUDE.md 合规文件
-619de84 🐛 修复 5 个 bug（引用污染/时序/异常/旧数据/死代码）
+8ceaf1a 🎮 Initial commit
+a7822cf ⚡ React best-practices 优化
+f065672 ✨ UI 全面优化：Lucide + CSS + 无障碍
+9bd2dca 🎯 键盘视图直接点击编辑
+c2a99f6 ✏️ 列表行内编辑模式
+4116e6e 🔧 键帽内行内编辑
+56bedf8 📋 CLAUDE.md 合规文件
+619de84 🐛 修复 5 个 bug（第一轮）
 e9faa9b 🤖 动作名关键词自动识别分类
-32c2329 🐛 修复 5 个 bug（第二轮：逐键更新/状态不同步/单字母误判/未用prop/重复计算）
+32c2329 🐛 修复 5 个 bug（第二轮）
+7b9fe6d 🧪 Vitest 测试框架 + 32 个测试
+6e1d90c 🐛 移除单字母关键词误判
+1558868 🐛 修复分类选择回退
+81202fd 🐛 useRef 同步标记
+92ce9c4 🐛 select 移除 onBlur
+6a11984 🐛 分类回退根因 + Playwright E2E
+bc4a172 🐛 EditableCell 重写（彻底修复）
 ```

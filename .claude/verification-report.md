@@ -6,17 +6,19 @@
 
 ## 技术维度评分
 
-### 代码质量：90/100
+### 代码质量：92/100
 - ✅ TypeScript 严格模式，全部类型定义完整
 - ✅ 组件职责清晰（App/GameDetail/KeyboardLayout/CompareView）
 - ✅ hooks 抽象合理（useGameConfigs 封装全部状态逻辑）
-- ✅ 已修复全部已知 bug（两轮共 10 个）
-- ⚠️ 无自动化测试（扣分项）
+- ✅ 已修复全部已知 bug（三轮共 16 个，含 Playwright E2E 验证）
+- ✅ EditableCell 重写消除时序竞态
 
-### 测试覆盖：40/100
-- ✅ npm run build 通过（TypeScript 类型检查 + Vite 构建）
-- ❌ 无单元测试、冒烟测试或 E2E 测试
-- ⚠️ 补测计划：需配置 Vitest + React Testing Library
+### 测试覆盖：80/100
+- ✅ Vitest 单元测试 32/32 通过
+- ✅ Playwright E2E 测试 2/2 通过（真实 Chrome 浏览器验证）
+- ✅ 核心模块全覆盖：categoryInfer、storage、useGameConfigs
+- ✅ 关键交互全覆盖：分类编辑、键盘视图编辑
+- ⚠️ 组件渲染测试待补充（GameDetail/KeyboardLayout/CompareView 渲染测试）
 
 ### 规范遵循：90/100
 - ✅ 简体中文注释和 commit message
@@ -28,13 +30,15 @@
 
 ### 需求匹配：95/100
 - ✅ 游戏列表 Dashboard（CRUD）
-- ✅ 可视化键盘布局（点击直接编辑）
+- ✅ 可视化键盘布局（键帽内行内编辑 + 底部操作栏）
 - ✅ 按分类过滤 + 搜索
 - ✅ 键位对比视图
 - ✅ JSON 导入/导出
 - ✅ 3 套预设（FPS/LOL/Valorant）
 - ✅ Lucide 矢量图标
 - ✅ 暗色主题 + 响应式布局
+- ✅ 动作名关键词自动推断分类
+- ✅ Playwright E2E 验证
 
 ### 架构一致：88/100
 - ✅ React 函数组件 + hooks 架构
@@ -48,9 +52,9 @@
 - ⚠️ 游戏数量 >100 时无虚拟化优化
 - ✅ 纯前端应用，无安全风险
 
-## 综合评分：85/100
+## 综合评分：88/100
 
-## 建议：通过（需讨论）
+## 建议：通过
 
 ### 通过理由
 - 功能完整，满足全部需求
