@@ -64,15 +64,6 @@ export default function GameDetail({
     [editingIndex],
   );
 
-  // 键盘点击 → 编辑对应键位
-  const handleKeyClick = useCallback(
-    (keyCode: string) => {
-      const idx = game.keybindings.findIndex((kb) => kb.key === keyCode);
-      if (idx >= 0) setEditingIndex(editingIndex === idx ? null : idx);
-    },
-    [game.keybindings, editingIndex],
-  );
-
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
       {/* 顶部导航 */}
@@ -91,11 +82,13 @@ export default function GameDetail({
         <span className="detail-count">{game.keybindings.length} 个键位</span>
       </div>
 
-      {/* 键盘可视化 */}
+      {/* 键盘可视化 — 点击键位直接弹出编辑框 */}
       <KeyboardLayout
         keybindings={game.keybindings}
         highlightKeys={boundKeys}
-        onKeyClick={handleKeyClick}
+        onUpdateKeybinding={(index, kb) => onUpdateKeybinding(game.id, index, kb)}
+        onRemoveKeybinding={(index) => onRemoveKeybinding(game.id, index)}
+        onAddKeybinding={(kb) => onAddKeybinding(game.id, kb)}
       />
 
       {/* 搜索 & 过滤 */}

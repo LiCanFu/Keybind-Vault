@@ -183,6 +183,7 @@ select.input { cursor: pointer; }
 .keyboard-container {
   background: var(--bg-secondary); border-radius: 12px;
   padding: 16px 12px; margin-bottom: 20px; overflow-x: auto;
+  position: relative;
 }
 .keyboard-row { display: flex; gap: 4px; margin-bottom: 4px; justify-content: flex-start; }
 
