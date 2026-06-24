@@ -3,6 +3,7 @@ import type { GameConfig, Keybinding, KeyCategory } from '../types';
 import { CATEGORY_LABELS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
 import { ActionIcons } from '../icons';
+import { inferCategory } from '../utils/categoryInfer';
 import KeyboardLayout from './KeyboardLayout';
 
 interface Props {
@@ -25,6 +26,7 @@ function EditableCell({
   className,
   style,
   onSave,
+  onInput,
   type = 'text',
   options,
 }: {
@@ -32,6 +34,7 @@ function EditableCell({
   className?: string;
   style?: React.CSSProperties;
   onSave: (v: string) => void;
+  onInput?: (v: string) => void;
   type?: 'text' | 'select';
   options?: { value: string; label: string }[];
 }) {
@@ -96,7 +99,7 @@ function EditableCell({
       type="text"
       className="input"
       value={draft}
-      onChange={(e) => setDraft(e.target.value)}
+      onChange={(e) => { setDraft(e.target.value); onInput?.(e.target.value); }}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit();
@@ -235,13 +238,24 @@ export default function GameDetail({
                     {KEY_DISPLAY_NAMES[kb.key] || kb.key}
                   </kbd>
 
-                  {/* 动作名称 — 点击直接编辑 */}
+                  {/* 动作名称 — 点击直接编辑，输入时自动推断分类 */}
                   <EditableCell
                     value={kb.action}
                     className="kb-action"
-                    onSave={(newAction) =>
-                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction })
-                    }
+                    onInput={(newAction) => {
+                      const inferred = inferCategory(newAction);
+                      if (inferred && inferred !== kb.category) {
+                        onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction, category: inferred });
+                      }
+                    }}
+                    onSave={(newAction) => {
+                      const inferred = inferCategory(newAction);
+                      onUpdateKeybinding(game.id, kb.origIdx, {
+                        ...kb,
+                        action: newAction,
+                        ...(inferred ? { category: inferred } : {}),
+                      });
+                    }}
                   />
 
                   {/* 分类 — 点击下拉切换 */}
@@ -289,6 +303,7 @@ function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
   const [action, setAction] = useState('');
   const [category, setCategory] = useState<KeyCategory>('other');
   const [expanded, setExpanded] = useState(false);
+  const [autoCategory, setAutoCategory] = useState(true);
 
   const handleSubmit = () => {
     if (!key || !action) return;
@@ -328,11 +343,27 @@ function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
             className="input"
             placeholder="前进, 换弹, 跳跃..."
             value={action}
-            onChange={(e) => setAction(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setAction(v);
+              if (autoCategory) {
+                const inferred = inferCategory(v);
+                if (inferred) setCategory(inferred);
+              }
+            }}
           />
         </div>
         <div style={{ flex: '0 0 100px' }}>
-          <label className="editor-label">分类</label>
+          <label className="editor-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            分类
+            <span
+              style={{ fontSize: 10, color: autoCategory ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer' }}
+              onClick={() => setAutoCategory(!autoCategory)}
+              title={autoCategory ? '自动推断已开启（点击关闭）' : '自动推断已关闭（点击开启）'}
+            >
+              {autoCategory ? '🤖 自动' : '手动'}
+            </span>
+          </label>
           <select className="input" value={category} onChange={(e) => setCategory(e.target.value as KeyCategory)}>
             {CATEGORY_ORDER.map((cat) => (
               <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>

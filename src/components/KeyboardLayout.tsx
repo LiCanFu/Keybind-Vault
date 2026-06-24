@@ -2,6 +2,7 @@ import { Fragment, useState, useRef, useEffect } from 'react';
 import type { Keybinding, KeyCategory } from '../types';
 import { KEY_DISPLAY_NAMES, KEYBOARD_ROWS, CATEGORY_LABELS, CATEGORY_ORDER } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
+import { inferCategory } from '../utils/categoryInfer';
 
 interface Props {
   keybindings: Keybinding[];
@@ -162,7 +163,15 @@ export default function KeyboardLayout({
                       type="text"
                       className="input"
                       value={editing.action}
-                      onChange={(e) => setEditing({ ...editing, action: e.target.value })}
+                      onChange={(e) => {
+                        const newAction = e.target.value;
+                        const inferred = inferCategory(newAction);
+                        setEditing({
+                          ...editing,
+                          action: newAction,
+                          ...(inferred ? { category: inferred } : {}),
+                        });
+                      }}
                       placeholder="输入动作..."
                       style={{
                         width: '100%',

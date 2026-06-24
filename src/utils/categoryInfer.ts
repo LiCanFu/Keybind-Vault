@@ -1,0 +1,41 @@
+/**
+ * 动作关键词 → 分类自动识别
+ * 输入动作名时匹配关键词，自动切换分类
+ */
+import type { KeyCategory } from '../types';
+
+// 关键词 → 分类映射（优先级从上到下，先匹配先生效）
+const KEYWORD_RULES: [string[], KeyCategory][] = [
+  // 移动
+  [['前进', '后退', '左移', '右移', '走', '跑', '冲刺', '闪避', '翻滚', '跳跃', '蹲', '站立', '静步', '行走', '趴', '爬', '游泳', '飞行', '加速', '减速', '制动', 'move', 'walk', 'run', 'sprint', 'dodge', 'jump', 'crouch'], 'movement'],
+  // 战斗
+  [['射击', '攻击', '开火', '瞄准', '开镜', '换弹', '装填', '近战', '格挡', '防御', '投掷', '扔', '丢', '切枪', '武器', '主武器', '副武器', 'shoot', 'fire', 'aim', 'reload', 'melee', 'block', 'throw'], 'combat'],
+  // 技能
+  [['技能', '大招', '必杀', 'Q', 'W', 'E', 'R', '天赋', '召唤师', '闪现', '点燃', '治疗', '屏障', '虚弱', '净化', '惩戒', '传送', 'ghost', 'flash', 'ignite', 'heal', 'barrier', 'exhaust', 'cleanse', 'smite', 'teleport', 'ultimate'], 'abilities'],
+  // 物品
+  [['物品', '装备', '道具', '背包', '使用', '拾取', '购买', '商店', '回城', '补给', '弹药', '手雷', '烟雾', '闪光', '燃烧瓶', '炸药', '陷阱', '地雷', 'item', 'equipment', 'inventory', 'use', 'pickup', 'buy', 'shop'], 'items'],
+  // 通讯
+  [['聊天', '语音', '通讯', '信号', '标记', '撤退', '进攻', '集合', '请求', '回复', '表情', '轮盘', 'ping', 'chat', 'voice', 'signal', 'mark', 'retreat', 'attack', 'gather'], 'communication'],
+  // 界面
+  [['计分板', '地图', '菜单', '背包', '设置', '截图', '录制', '视角', '镜头', '队友', '社交', '好友', 'tab', 'scoreboard', 'map', 'menu', 'settings', 'screenshot', 'record', 'camera'], 'ui'],
+];
+
+/**
+ * 根据动作名自动推断分类
+ * @param action 动作描述文字
+ * @returns 推断的分类，无法推断时返回 null
+ */
+export function inferCategory(action: string): KeyCategory | null {
+  const lower = action.toLowerCase().trim();
+  if (!lower) return null;
+
+  for (const [keywords, category] of KEYWORD_RULES) {
+    for (const kw of keywords) {
+      // 中文直接包含匹配，英文忽略大小写
+      if (lower.includes(kw.toLowerCase())) {
+        return category;
+      }
+    }
+  }
+  return null;
+}
