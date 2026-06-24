@@ -18,6 +18,7 @@ interface EditingKey {
   index: number; // -1 = 新增
   action: string;
   category: KeyCategory;
+  categoryManual: boolean; // 用户是否手动改过分类
 }
 
 export default function KeyboardLayout({
@@ -58,9 +59,10 @@ export default function KeyboardLayout({
         index: entry.index,
         action: entry.binding.action,
         category: entry.binding.category,
+        categoryManual: false,
       });
     } else if (onAddKeybinding) {
-      setEditing({ code, index: -1, action: '', category: 'other' });
+      setEditing({ code, index: -1, action: '', category: 'other', categoryManual: false });
     }
   };
 
@@ -165,12 +167,13 @@ export default function KeyboardLayout({
                       value={editing.action}
                       onChange={(e) => {
                         const newAction = e.target.value;
-                        const inferred = inferCategory(newAction);
-                        setEditing({
-                          ...editing,
-                          action: newAction,
-                          ...(inferred ? { category: inferred } : {}),
-                        });
+                        const updates: Partial<EditingKey> = { action: newAction };
+                        // 仅在用户未手动改过分类时自动推断
+                        if (!editing.categoryManual) {
+                          const inferred = inferCategory(newAction);
+                          if (inferred) updates.category = inferred;
+                        }
+                        setEditing({ ...editing, ...updates });
                       }}
                       placeholder="输入动作..."
                       style={{
@@ -218,7 +221,7 @@ export default function KeyboardLayout({
           <select
             className="input"
             value={editing.category}
-            onChange={(e) => setEditing({ ...editing, category: e.target.value as KeyCategory })}
+            onChange={(e) => setEditing({ ...editing, category: e.target.value as KeyCategory, categoryManual: true })}
             style={{ width: 'auto', fontSize: 12, padding: '2px 6px' }}
           >
             {CATEGORY_ORDER.map((cat) => (

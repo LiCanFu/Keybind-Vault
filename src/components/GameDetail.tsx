@@ -46,6 +46,11 @@ function EditableCell({
   const committedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
+  // 当外部 value 变化时同步 draft（父级保存后的新值）
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
   useEffect(() => {
     if (editing) {
       inputRef.current?.focus();
@@ -243,17 +248,12 @@ export default function GameDetail({
                     {KEY_DISPLAY_NAMES[kb.key] || kb.key}
                   </kbd>
 
-                  {/* 动作名称 — 点击直接编辑，保存时自动推断分类 */}
+                  {/* 动作名称 — 点击直接编辑，仅保存动作，不覆盖已有分类 */}
                   <EditableCell
                     value={kb.action}
                     className="kb-action"
                     onSave={(newAction) => {
-                      const inferred = inferCategory(newAction);
-                      onUpdateKeybinding(game.id, kb.origIdx, {
-                        ...kb,
-                        action: newAction,
-                        ...(inferred ? { category: inferred } : {}),
-                      });
+                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction });
                     }}
                   />
 
