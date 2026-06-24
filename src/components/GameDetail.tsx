@@ -17,14 +17,13 @@ interface Props {
 
 type IndexedKeybinding = Keybinding & { origIdx: number };
 
-// 分类选项（模块常量，避免每次渲染重建）
 const CATEGORY_OPTIONS = CATEGORY_ORDER.map((cat) => ({
   value: cat,
   label: CATEGORY_LABELS[cat],
 }));
 
 // ============================================================
-// 可编辑单元格组件 — 点击文字直接进入编辑模式
+// 可编辑单元格 — 显示态直接渲染 value，编辑态用 draft
 // ============================================================
 function EditableCell({
   value,
@@ -43,13 +42,13 @@ function EditableCell({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
-  const committedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
-  // 当外部 value 变化时同步 draft（父级保存后的新值）
-  useEffect(() => {
-    if (!editing) setDraft(value);
-  }, [value, editing]);
+  // 进入编辑态时，用当前 value 初始化 draft
+  const startEditing = () => {
+    setDraft(value);
+    setEditing(true);
+  };
 
   useEffect(() => {
     if (editing) {
@@ -62,22 +61,16 @@ function EditableCell({
 
   const commit = () => {
     if (draft !== value) onSave(draft);
-    committedRef.current = true;
     setEditing(false);
   };
 
-  const cancel = () => {
-    if (committedRef.current) { committedRef.current = false; return; }
-    setDraft(value);
-    setEditing(false);
-  };
-
+  // 显示态 — 直接渲染 value，不依赖 draft
   if (!editing) {
     return (
       <span
         className={className}
         style={{ ...style, cursor: 'text', borderBottom: '1px dashed transparent', transition: 'border-color 0.15s' }}
-        onClick={() => { setDraft(value); committedRef.current = false; setEditing(true); }}
+        onClick={startEditing}
         onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--accent)')}
         onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
         title="点击编辑"
@@ -87,6 +80,7 @@ function EditableCell({
     );
   }
 
+  // 编辑态 — select 模式
   if (type === 'select' && options) {
     return (
       <select
@@ -108,6 +102,7 @@ function EditableCell({
     );
   }
 
+  // 编辑态 — 文本输入模式
   return (
     <input
       ref={inputRef as React.RefObject<HTMLInputElement>}
@@ -118,7 +113,7 @@ function EditableCell({
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit();
-        if (e.key === 'Escape') cancel();
+        if (e.key === 'Escape') setEditing(false);
       }}
       style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
     />
@@ -168,7 +163,6 @@ export default function GameDetail({
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      {/* 顶部导航 */}
       <div className="detail-header">
         <button onClick={onBack} className="btn btn-sm" aria-label="返回游戏列表">
           <ActionIcons.ArrowLeft size={14} /> 返回
@@ -184,7 +178,6 @@ export default function GameDetail({
         <span className="detail-count">{game.keybindings.length} 个键位</span>
       </div>
 
-      {/* 键盘可视化 */}
       <KeyboardLayout
         keybindings={game.keybindings}
         highlightKeys={boundKeys}
@@ -193,7 +186,6 @@ export default function GameDetail({
         onAddKeybinding={(kb) => onAddKeybinding(game.id, kb)}
       />
 
-      {/* 搜索 & 过滤 */}
       <div className="search-filter-bar">
         <input
           type="text"
@@ -219,7 +211,6 @@ export default function GameDetail({
         })}
       </div>
 
-      {/* 键位列表 — 直接点击文字即可编辑 */}
       {CATEGORY_ORDER.map((cat) => {
         const items = grouped[cat];
         if (!items || items.length === 0) return null;
@@ -232,12 +223,10 @@ export default function GameDetail({
             <div className="kb-list">
               {items.map((kb) => (
                 <div key={`${kb.key}-${kb.origIdx}`} className="kb-item card">
-                  {/* 按键名称 — 点击编辑 */}
                   <kbd
                     className="kbd"
-                    style={{ cursor: 'text', borderBottom: '1px dashed transparent' }}
+                    style={{ cursor: 'text' }}
                     onClick={() => {
-                      // 按键用弹框选更合理（因为需要知道键码）
                       const newKey = prompt('输入新按键代码（如 KeyQ, Mouse0）：', kb.key);
                       if (newKey && newKey !== kb.key) {
                         onUpdateKeybinding(game.id, kb.origIdx, { ...kb, key: newKey });
@@ -248,16 +237,14 @@ export default function GameDetail({
                     {KEY_DISPLAY_NAMES[kb.key] || kb.key}
                   </kbd>
 
-                  {/* 动作名称 — 点击直接编辑，仅保存动作，不覆盖已有分类 */}
                   <EditableCell
                     value={kb.action}
                     className="kb-action"
-                    onSave={(newAction) => {
-                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction });
-                    }}
+                    onSave={(newAction) =>
+                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction })
+                    }
                   />
 
-                  {/* 分类 — 点击下拉切换 */}
                   <EditableCell
                     value={CATEGORY_LABELS[kb.category]}
                     className="badge"
@@ -269,7 +256,6 @@ export default function GameDetail({
                     }
                   />
 
-                  {/* 删除按钮 */}
                   <button
                     className="btn btn-sm btn-icon"
                     onClick={() => {
@@ -288,14 +274,13 @@ export default function GameDetail({
 
       {filtered.length === 0 && <p className="empty-state">没有匹配的键位</p>}
 
-      {/* 新增键位 */}
       <KeyEditorInline onAdd={(kb) => onAddKeybinding(game.id, kb)} />
     </div>
   );
 }
 
 // ============================================================
-// 底部新增键位 — 简洁内联版
+// 底部新增键位
 // ============================================================
 function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
   const [key, setKey] = useState('');
@@ -314,11 +299,7 @@ function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
 
   if (!expanded) {
     return (
-      <button
-        className="btn btn-sm"
-        style={{ marginTop: 12 }}
-        onClick={() => setExpanded(true)}
-      >
+      <button className="btn btn-sm" style={{ marginTop: 12 }} onClick={() => setExpanded(true)}>
         <ActionIcons.Plus size={12} /> 添加键位
       </button>
     );
@@ -329,12 +310,7 @@ function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div style={{ flex: '0 0 120px' }}>
           <label className="editor-label">按键代码</label>
-          <input
-            className="input input-mono"
-            placeholder="KeyQ, Space..."
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-          />
+          <input className="input input-mono" placeholder="KeyQ, Space..." value={key} onChange={(e) => setKey(e.target.value)} />
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <label className="editor-label">动作描述</label>
@@ -358,7 +334,7 @@ function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
             <span
               style={{ fontSize: 10, color: autoCategory ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer' }}
               onClick={() => setAutoCategory(!autoCategory)}
-              title={autoCategory ? '自动推断已开启（点击关闭）' : '自动推断已关闭（点击开启）'}
+              title={autoCategory ? '自动推断已开启' : '自动推断已关闭'}
             >
               {autoCategory ? '🤖 自动' : '手动'}
             </span>
