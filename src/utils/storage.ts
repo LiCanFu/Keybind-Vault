@@ -2,37 +2,27 @@ import type { GameConfig } from '../types';
 
 const STORAGE_KEY = 'keybind-vault-games';
 
+// 缓存 localStorage 读取，避免重复解析 JSON（js-cache-storage 规则）
+let cachedGames: GameConfig[] | null = null;
+
 export function loadGames(): GameConfig[] {
+  if (cachedGames !== null) return cachedGames;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
+    cachedGames = raw ? JSON.parse(raw) : [];
   } catch {
-    return [];
+    cachedGames = [];
   }
+  return cachedGames!;
 }
 
 export function saveGames(games: GameConfig[]): void {
+  cachedGames = games;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
 }
 
-export function getGame(id: string): GameConfig | undefined {
-  return loadGames().find((g) => g.id === id);
-}
-
-export function saveGame(game: GameConfig): void {
-  const games = loadGames();
-  const idx = games.findIndex((g) => g.id === game.id);
-  if (idx >= 0) {
-    games[idx] = { ...game, updatedAt: new Date().toISOString() };
-  } else {
-    games.push(game);
-  }
-  saveGames(games);
-}
-
-export function deleteGame(id: string): void {
-  saveGames(loadGames().filter((g) => g.id !== id));
+export function clearCache(): void {
+  cachedGames = null;
 }
 
 export function generateId(): string {

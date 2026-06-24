@@ -57,6 +57,17 @@ export default function CompareView({ games }: Props) {
     return rows;
   }, [gameA, gameB]);
 
+  // 统计各状态数量（memo 避免每次渲染重新 filter）
+  const stats = useMemo(() => {
+    if (!comparison) return null;
+    return {
+      same: comparison.filter((r) => r.status === 'same').length,
+      conflict: comparison.filter((r) => r.status === 'conflict').length,
+      onlyA: comparison.filter((r) => r.status === 'only-a').length,
+      onlyB: comparison.filter((r) => r.status === 'only-b').length,
+    };
+  }, [comparison]);
+
   return (
     <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
       <h2 style={{ marginBottom: 16 }}>🔍 键位对比</h2>
@@ -94,13 +105,13 @@ export default function CompareView({ games }: Props) {
         </select>
       </div>
 
-      {comparison && (
+      {comparison && stats && (
         <div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12, fontSize: 12 }}>
-            <span>🟢 相同 ({comparison.filter((r) => r.status === 'same').length})</span>
-            <span>🔴 冲突 ({comparison.filter((r) => r.status === 'conflict').length})</span>
-            <span>🅰️ 仅A ({comparison.filter((r) => r.status === 'only-a').length})</span>
-            <span>🅱️ 仅B ({comparison.filter((r) => r.status === 'only-b').length})</span>
+            <span>🟢 相同 ({stats.same})</span>
+            <span>🔴 冲突 ({stats.conflict})</span>
+            <span>🅰️ 仅A ({stats.onlyA})</span>
+            <span>🅱️ 仅B ({stats.onlyB})</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

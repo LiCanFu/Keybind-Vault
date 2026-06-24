@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GameConfig, Keybinding } from '../types';
-import { loadGames, saveGames, saveGame, deleteGame, generateId, exportJSON, importJSON } from '../utils/storage';
+import { loadGames, saveGames, generateId, exportJSON, importJSON } from '../utils/storage';
 import { ALL_PRESETS } from '../utils/presets';
 
 export function useGameConfigs() {
@@ -12,11 +12,17 @@ export function useGameConfigs() {
     let data = loadGames();
     if (data.length === 0) {
       data = ALL_PRESETS;
-      saveGames(data);
     }
     setGames(data);
     setLoading(false);
   }, []);
+
+  // 状态变更时自动持久化（避免在每个 setter 内部手动写 localStorage）
+  useEffect(() => {
+    if (!loading) {
+      saveGames(games);
+    }
+  }, [games, loading]);
 
   const addGame = useCallback((name: string, genre: GameConfig['genre']) => {
     const now = new Date().toISOString();
@@ -28,70 +34,49 @@ export function useGameConfigs() {
       createdAt: now,
       updatedAt: now,
     };
-    saveGame(game);
     setGames((prev) => [...prev, game]);
     return game;
   }, []);
 
-  const updateGame = useCallback((game: GameConfig) => {
-    saveGame(game);
-    setGames((prev) => prev.map((g) => (g.id === game.id ? game : g)));
-  }, []);
-
   const updateGameName = useCallback((id: string, name: string) => {
-    setGames((prev) => {
-      const next = prev.map((g) => (g.id === id ? { ...g, name, updatedAt: new Date().toISOString() } : g));
-      saveGames(next);
-      return next;
-    });
+    setGames((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, name, updatedAt: new Date().toISOString() } : g)),
+    );
   }, []);
 
   const removeGame = useCallback((id: string) => {
-    deleteGame(id);
     setGames((prev) => prev.filter((g) => g.id !== id));
   }, []);
 
   const addKeybinding = useCallback((gameId: string, kb: Keybinding) => {
-    setGames((prev) => {
-      const next = prev.map((g) => {
-        if (g.id !== gameId) return g;
-        return {
-          ...g,
-          keybindings: [...g.keybindings, kb],
-          updatedAt: new Date().toISOString(),
-        };
-      });
-      saveGames(next);
-      return next;
-    });
+    setGames((prev) =>
+      prev.map((g) =>
+        g.id === gameId
+          ? { ...g, keybindings: [...g.keybindings, kb], updatedAt: new Date().toISOString() }
+          : g,
+      ),
+    );
   }, []);
 
   const updateKeybinding = useCallback((gameId: string, index: number, kb: Keybinding) => {
-    setGames((prev) => {
-      const next = prev.map((g) => {
+    setGames((prev) =>
+      prev.map((g) => {
         if (g.id !== gameId) return g;
         const kbs = [...g.keybindings];
         kbs[index] = kb;
         return { ...g, keybindings: kbs, updatedAt: new Date().toISOString() };
-      });
-      saveGames(next);
-      return next;
-    });
+      }),
+    );
   }, []);
 
   const removeKeybinding = useCallback((gameId: string, index: number) => {
-    setGames((prev) => {
-      const next = prev.map((g) => {
-        if (g.id !== gameId) return g;
-        return {
-          ...g,
-          keybindings: g.keybindings.filter((_, i) => i !== index),
-          updatedAt: new Date().toISOString(),
-        };
-      });
-      saveGames(next);
-      return next;
-    });
+    setGames((prev) =>
+      prev.map((g) =>
+        g.id === gameId
+          ? { ...g, keybindings: g.keybindings.filter((_, i) => i !== index), updatedAt: new Date().toISOString() }
+          : g,
+      ),
+    );
   }, []);
 
   const handleExport = useCallback(() => {
@@ -107,12 +92,10 @@ export function useGameConfigs() {
 
   const handleImport = useCallback((json: string) => {
     const merged = importJSON(json);
-    saveGames(merged);
     setGames(merged);
   }, []);
 
   const reset = useCallback(() => {
-    saveGames(ALL_PRESETS);
     setGames(ALL_PRESETS);
   }, []);
 
@@ -120,7 +103,6 @@ export function useGameConfigs() {
     games,
     loading,
     addGame,
-    updateGame,
     updateGameName,
     removeGame,
     addKeybinding,

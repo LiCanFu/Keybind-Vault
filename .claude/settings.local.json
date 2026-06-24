@@ -16,7 +16,13 @@
       "Bash(npx vite *)",
       "Bash(cd \\\\\"D:/Learning_project/Keybind Vault\\\\\" && npm run build 2>&1\\\\\", description: *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m '🎮 Initial commit: Keybind Vault — 游戏键盘配置备忘录 *)",
+      "Bash(git config *)",
+      "Bash(git commit *)",
+      "Bash(cat \"C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\D--Learning-project-Keybind-Vault\\\\\\\\e166f81b-ec7b-4c57-beb3-f9c17e2c20e0\\\\\\\\tasks\\\\\\\\b1maldme6.output\")",
+      "Bash(npx *)"
     ]
-  }
+  },
+  "skillOverrides": {}
 }

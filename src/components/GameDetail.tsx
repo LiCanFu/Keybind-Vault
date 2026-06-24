@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { GameConfig, Keybinding, KeyCategory } from '../types';
-import { CATEGORY_LABELS, CATEGORY_ICONS, KEY_DISPLAY_NAMES } from '../types';
+import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '../types';
 import KeyboardLayout from './KeyboardLayout';
 import KeyEditor from './KeyEditor';
 
@@ -14,6 +14,9 @@ interface Props {
   onRemoveKeybinding: (gameId: string, index: number) => void;
 }
 
+// 带原始索引的键位类型
+type IndexedKeybinding = Keybinding & { origIdx: number };
+
 export default function GameDetail({
   game,
   onBack,
@@ -26,38 +29,42 @@ export default function GameDetail({
   const [filterCategory, setFilterCategory] = useState<KeyCategory | 'all'>('all');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const filtered = game.keybindings.filter((kb) => {
-    const matchSearch =
-      !search ||
-      kb.action.toLowerCase().includes(search.toLowerCase()) ||
-      (KEY_DISPLAY_NAMES[kb.key] || kb.key).toLowerCase().includes(search.toLowerCase());
-    const matchCat = filterCategory === 'all' || kb.category === filterCategory;
-    return matchSearch && matchCat;
-  });
+  // 按搜索和分类过滤，保留原始索引（避免 indexOf 重复键位 bug）
+  const filtered: IndexedKeybinding[] = useMemo(() => {
+    const lowerSearch = search.toLowerCase();
+    return game.keybindings
+      .map((kb, idx) => ({ ...kb, origIdx: idx }))
+      .filter((kb) => {
+        const matchSearch =
+          !search ||
+          kb.action.toLowerCase().includes(lowerSearch) ||
+          (KEY_DISPLAY_NAMES[kb.key] || kb.key).toLowerCase().includes(lowerSearch);
+        const matchCat = filterCategory === 'all' || kb.category === filterCategory;
+        return matchSearch && matchCat;
+      });
+  }, [game.keybindings, search, filterCategory]);
 
   // 按分类分组
-  const grouped = filtered.reduce(
-    (acc, kb, idx) => {
-      const cat = kb.category;
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push({ ...kb, _origIdx: idx });
-      return acc;
-    },
-    {} as Record<string, (Keybinding & { _origIdx: number })[]>,
+  const grouped = useMemo(() => {
+    const acc: Record<string, IndexedKeybinding[]> = {};
+    for (const kb of filtered) {
+      (acc[kb.category] ??= []).push(kb);
+    }
+    return acc;
+  }, [filtered]);
+
+  // 被绑定的键集合 — memo 避免 KeyboardLayout 每次重建 Map
+  const boundKeys = useMemo(
+    () => new Set(game.keybindings.map((k) => k.key)),
+    [game.keybindings],
   );
 
-  const categoryOrder: KeyCategory[] = [
-    'movement',
-    'combat',
-    'abilities',
-    'items',
-    'communication',
-    'ui',
-    'other',
-  ];
-
-  // 找出被绑定的键集合，传给键盘组件高亮
-  const boundKeys = new Set(game.keybindings.map((k) => k.key));
+  const handleEditToggle = useCallback(
+    (origIdx: number) => {
+      setEditingIndex(editingIndex === origIdx ? null : origIdx);
+    },
+    [editingIndex],
+  );
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
@@ -95,7 +102,7 @@ export default function GameDetail({
           onChange={(e) => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
-        {(['all', ...categoryOrder] as const).map((cat) => (
+        {(['all', ...CATEGORY_ORDER] as const).map((cat) => (
           <button
             key={cat}
             className={`btn btn-sm ${filterCategory === cat ? 'btn-primary' : ''}`}
@@ -107,7 +114,7 @@ export default function GameDetail({
       </div>
 
       {/* 键位列表 */}
-      {categoryOrder.map((cat) => {
+      {CATEGORY_ORDER.map((cat) => {
         const items = grouped[cat];
         if (!items || items.length === 0) return null;
         return (
@@ -117,16 +124,13 @@ export default function GameDetail({
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {items.map((kb) => {
-                const origIdx = game.keybindings.indexOf(kb);
-                const isEditing = editingIndex === origIdx;
-
-                if (isEditing) {
+                if (editingIndex === kb.origIdx) {
                   return (
                     <KeyEditor
-                      key={`edit-${origIdx}`}
+                      key={`edit-${kb.origIdx}`}
                       initial={kb}
                       onSave={(updated) => {
-                        onUpdateKeybinding(game.id, origIdx, updated);
+                        onUpdateKeybinding(game.id, kb.origIdx, updated);
                         setEditingIndex(null);
                       }}
                       onCancel={() => setEditingIndex(null)}
@@ -136,7 +140,7 @@ export default function GameDetail({
 
                 return (
                   <div
-                    key={`${kb.key}-${kb.action}-${origIdx}`}
+                    key={`${kb.key}-${kb.origIdx}`}
                     className="card"
                     style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 12 }}
                   >
@@ -159,7 +163,7 @@ export default function GameDetail({
                     <span style={{ flex: 1 }}>{kb.action}</span>
                     <button
                       className="btn btn-sm"
-                      onClick={() => setEditingIndex(editingIndex === origIdx ? null : origIdx)}
+                      onClick={() => handleEditToggle(kb.origIdx)}
                       style={{ fontSize: 12 }}
                     >
                       ✏️
@@ -167,7 +171,7 @@ export default function GameDetail({
                     <button
                       className="btn btn-sm"
                       onClick={() => {
-                        if (confirm('删除这个键位？')) onRemoveKeybinding(game.id, origIdx);
+                        if (confirm('删除这个键位？')) onRemoveKeybinding(game.id, kb.origIdx);
                       }}
                       style={{ fontSize: 12 }}
                     >

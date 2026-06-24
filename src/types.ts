@@ -31,6 +31,17 @@ export interface GameConfig {
   updatedAt: string;
 }
 
+// --- 分类顺序（全局常量，避免组件内重复定义） ---
+export const CATEGORY_ORDER: KeyCategory[] = [
+  'movement',
+  'combat',
+  'abilities',
+  'items',
+  'communication',
+  'ui',
+  'other',
+];
+
 // --- 分类中文映射 ---
 export const CATEGORY_LABELS: Record<KeyCategory, string> = {
   movement: '移动',
@@ -85,6 +96,7 @@ export const KEY_DISPLAY_NAMES: Record<string, string> = {
   MetaLeft: 'Win', Backspace: '←',
   Enter: 'Enter', Delete: 'Del', Insert: 'Ins',
   Home: 'Home', End: 'End', PageUp: 'PgUp', PageDown: 'PgDn',
+  PrintScreen: 'PrtSc',
   ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
   Mouse0: '鼠标左键', Mouse1: '鼠标右键', Mouse2: '鼠标中键',
   Mouse3: '侧键1', Mouse4: '侧键2',
@@ -132,7 +144,7 @@ export const KEYBOARD_ROWS: KeyDef[][] = [
     { code: 'Minus', label: '-', w: 1 },
     { code: 'Equal', label: '=', w: 1 },
     { code: 'Backspace', label: '⌫', w: 2 },
-    { code: 'Delete', label: 'Del', w: 1, ox: 0.5 },
+    { code: 'PrintScreen', label: 'PrtSc', w: 1, ox: 0.5 },
   ],
   // QWERTY 排
   [
