@@ -1,10 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import type { GameConfig, Keybinding, KeyCategory } from '../types';
 import { CATEGORY_LABELS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
 import { ActionIcons } from '../icons';
 import KeyboardLayout from './KeyboardLayout';
-import KeyEditor from './KeyEditor';
 
 interface Props {
   game: GameConfig;
@@ -18,6 +17,99 @@ interface Props {
 
 type IndexedKeybinding = Keybinding & { origIdx: number };
 
+// ============================================================
+// 可编辑单元格组件 — 点击文字直接进入编辑模式
+// ============================================================
+function EditableCell({
+  value,
+  className,
+  style,
+  onSave,
+  type = 'text',
+  options,
+}: {
+  value: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onSave: (v: string) => void;
+  type?: 'text' | 'select';
+  options?: { value: string; label: string }[];
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      if (inputRef.current instanceof HTMLInputElement) {
+        inputRef.current.select();
+      }
+    }
+  }, [editing]);
+
+  const commit = () => {
+    if (draft !== value) onSave(draft);
+    setEditing(false);
+  };
+
+  const cancel = () => {
+    setDraft(value);
+    setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <span
+        className={className}
+        style={{ ...style, cursor: 'text', borderBottom: '1px dashed transparent', transition: 'border-color 0.15s' }}
+        onClick={() => { setDraft(value); setEditing(true); }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--accent)')}
+        onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
+        title="点击编辑"
+      >
+        {value}
+      </span>
+    );
+  }
+
+  if (type === 'select' && options) {
+    return (
+      <select
+        ref={inputRef as React.RefObject<HTMLSelectElement>}
+        className="input"
+        value={draft}
+        onChange={(e) => { setDraft(e.target.value); onSave(e.target.value); setEditing(false); }}
+        onBlur={cancel}
+        style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <input
+      ref={inputRef as React.RefObject<HTMLInputElement>}
+      type="text"
+      className="input"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit();
+        if (e.key === 'Escape') cancel();
+      }}
+      style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
+    />
+  );
+}
+
+// ============================================================
+// 主组件
+// ============================================================
 export default function GameDetail({
   game,
   onBack,
@@ -28,7 +120,6 @@ export default function GameDetail({
 }: Props) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<KeyCategory | 'all'>('all');
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const filtered: IndexedKeybinding[] = useMemo(() => {
     const lowerSearch = search.toLowerCase();
@@ -57,12 +148,10 @@ export default function GameDetail({
     [game.keybindings],
   );
 
-  const handleEditToggle = useCallback(
-    (origIdx: number) => {
-      setEditingIndex(editingIndex === origIdx ? null : origIdx);
-    },
-    [editingIndex],
-  );
+  const categoryOptions = CATEGORY_ORDER.map((cat) => ({
+    value: cat,
+    label: CATEGORY_LABELS[cat],
+  }));
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
@@ -82,7 +171,7 @@ export default function GameDetail({
         <span className="detail-count">{game.keybindings.length} 个键位</span>
       </div>
 
-      {/* 键盘可视化 — 点击键位直接弹出编辑框 */}
+      {/* 键盘可视化 */}
       <KeyboardLayout
         keybindings={game.keybindings}
         highlightKeys={boundKeys}
@@ -117,7 +206,7 @@ export default function GameDetail({
         })}
       </div>
 
-      {/* 键位列表 */}
+      {/* 键位列表 — 直接点击文字即可编辑 */}
       {CATEGORY_ORDER.map((cat) => {
         const items = grouped[cat];
         if (!items || items.length === 0) return null;
@@ -128,46 +217,57 @@ export default function GameDetail({
               <CatIcon size={16} /> {CATEGORY_LABELS[cat]}
             </h3>
             <div className="kb-list">
-              {items.map((kb) => {
-                if (editingIndex === kb.origIdx) {
-                  return (
-                    <KeyEditor
-                      key={`edit-${kb.origIdx}`}
-                      initial={kb}
-                      onSave={(updated) => {
-                        onUpdateKeybinding(game.id, kb.origIdx, updated);
-                        setEditingIndex(null);
-                      }}
-                      onCancel={() => setEditingIndex(null)}
-                    />
-                  );
-                }
+              {items.map((kb) => (
+                <div key={`${kb.key}-${kb.origIdx}`} className="kb-item card">
+                  {/* 按键名称 — 点击编辑 */}
+                  <kbd
+                    className="kbd"
+                    style={{ cursor: 'text', borderBottom: '1px dashed transparent' }}
+                    onClick={() => {
+                      // 按键用弹框选更合理（因为需要知道键码）
+                      const newKey = prompt('输入新按键代码（如 KeyQ, Mouse0）：', kb.key);
+                      if (newKey && newKey !== kb.key) {
+                        onUpdateKeybinding(game.id, kb.origIdx, { ...kb, key: newKey });
+                      }
+                    }}
+                    title="点击修改按键"
+                  >
+                    {KEY_DISPLAY_NAMES[kb.key] || kb.key}
+                  </kbd>
 
-                return (
-                  <div key={`${kb.key}-${kb.origIdx}`} className="kb-item card">
-                    <kbd className="kbd">{KEY_DISPLAY_NAMES[kb.key] || kb.key}</kbd>
-                    <span className="kb-action">{kb.action}</span>
-                    <div className="kb-actions">
-                      <button
-                        className="btn btn-sm btn-icon"
-                        onClick={() => handleEditToggle(kb.origIdx)}
-                        aria-label={`编辑 ${kb.action}`}
-                      >
-                        <ActionIcons.Edit size={12} />
-                      </button>
-                      <button
-                        className="btn btn-sm btn-icon"
-                        onClick={() => {
-                          if (confirm('删除这个键位？')) onRemoveKeybinding(game.id, kb.origIdx);
-                        }}
-                        aria-label={`删除 ${kb.action}`}
-                      >
-                        <ActionIcons.Trash size={12} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  {/* 动作名称 — 点击直接编辑 */}
+                  <EditableCell
+                    value={kb.action}
+                    className="kb-action"
+                    onSave={(newAction) =>
+                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, action: newAction })
+                    }
+                  />
+
+                  {/* 分类 — 点击下拉切换 */}
+                  <EditableCell
+                    value={CATEGORY_LABELS[kb.category]}
+                    className="badge"
+                    style={{ fontSize: 11, cursor: 'pointer' }}
+                    type="select"
+                    options={categoryOptions}
+                    onSave={(newCat) =>
+                      onUpdateKeybinding(game.id, kb.origIdx, { ...kb, category: newCat as KeyCategory })
+                    }
+                  />
+
+                  {/* 删除按钮 */}
+                  <button
+                    className="btn btn-sm btn-icon"
+                    onClick={() => {
+                      if (confirm(`删除 "${kb.action}" 键位？`)) onRemoveKeybinding(game.id, kb.origIdx);
+                    }}
+                    aria-label={`删除 ${kb.action}`}
+                  >
+                    <ActionIcons.Trash size={12} />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -176,7 +276,76 @@ export default function GameDetail({
       {filtered.length === 0 && <p className="empty-state">没有匹配的键位</p>}
 
       {/* 新增键位 */}
-      <KeyEditor onSave={(kb) => onAddKeybinding(game.id, kb)} />
+      <KeyEditorInline onAdd={(kb) => onAddKeybinding(game.id, kb)} />
+    </div>
+  );
+}
+
+// ============================================================
+// 底部新增键位 — 简洁内联版
+// ============================================================
+function KeyEditorInline({ onAdd }: { onAdd: (kb: Keybinding) => void }) {
+  const [key, setKey] = useState('');
+  const [action, setAction] = useState('');
+  const [category, setCategory] = useState<KeyCategory>('other');
+  const [expanded, setExpanded] = useState(false);
+
+  const handleSubmit = () => {
+    if (!key || !action) return;
+    onAdd({ key, action, category });
+    setKey('');
+    setAction('');
+    setCategory('other');
+  };
+
+  if (!expanded) {
+    return (
+      <button
+        className="btn btn-sm"
+        style={{ marginTop: 12 }}
+        onClick={() => setExpanded(true)}
+      >
+        <ActionIcons.Plus size={12} /> 添加键位
+      </button>
+    );
+  }
+
+  return (
+    <div className="card editor-container" style={{ marginTop: 12 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={{ flex: '0 0 120px' }}>
+          <label className="editor-label">按键代码</label>
+          <input
+            className="input input-mono"
+            placeholder="KeyQ, Space..."
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <label className="editor-label">动作描述</label>
+          <input
+            className="input"
+            placeholder="前进, 换弹, 跳跃..."
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+          />
+        </div>
+        <div style={{ flex: '0 0 100px' }}>
+          <label className="editor-label">分类</label>
+          <select className="input" value={category} onChange={(e) => setCategory(e.target.value as KeyCategory)}>
+            {CATEGORY_ORDER.map((cat) => (
+              <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
+            ))}
+          </select>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={handleSubmit} disabled={!key || !action}>
+          <ActionIcons.Plus size={12} /> 添加
+        </button>
+        <button className="btn btn-sm" onClick={() => setExpanded(false)}>
+          <ActionIcons.X size={12} />
+        </button>
+      </div>
     </div>
   );
 }
