@@ -43,7 +43,7 @@ function EditableCell({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
-  const [committed, setCommitted] = useState(false);
+  const committedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -57,12 +57,12 @@ function EditableCell({
 
   const commit = () => {
     if (draft !== value) onSave(draft);
-    setCommitted(true);
+    committedRef.current = true;
     setEditing(false);
   };
 
   const cancel = () => {
-    if (committed) { setCommitted(false); return; }
+    if (committedRef.current) { committedRef.current = false; return; }
     setDraft(value);
     setEditing(false);
   };
@@ -72,7 +72,7 @@ function EditableCell({
       <span
         className={className}
         style={{ ...style, cursor: 'text', borderBottom: '1px dashed transparent', transition: 'border-color 0.15s' }}
-        onClick={() => { setDraft(value); setCommitted(false); setEditing(true); }}
+        onClick={() => { setDraft(value); committedRef.current = false; setEditing(true); }}
         onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--accent)')}
         onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
         title="点击编辑"
@@ -88,7 +88,7 @@ function EditableCell({
         ref={inputRef as React.RefObject<HTMLSelectElement>}
         className="input"
         value={draft}
-        onChange={(e) => { setDraft(e.target.value); setCommitted(true); onSave(e.target.value); setEditing(false); }}
+        onChange={(e) => { setDraft(e.target.value); committedRef.current = true; onSave(e.target.value); setEditing(false); }}
         onBlur={cancel}
         style={{ ...style, padding: '2px 6px', fontSize: 'inherit' }}
       >
