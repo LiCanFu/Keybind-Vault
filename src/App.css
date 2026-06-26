@@ -6,7 +6,6 @@
   --bg-primary: #0f1117;
   --bg-secondary: #181b24;
   --bg-tertiary: #242836;
-  --border: #2e3348;
   --text-primary: #e4e8f0;
   --text-secondary: #8b90a5;
   --accent: #6c8cff;
@@ -15,8 +14,6 @@
   --warning: #f0a050;
   --success: #4bc48a;
   --sidebar-width: 240px;
-  --radius: 8px;
-  --radius-sm: 4px;
 
   --cat-movement: #6c8cff;
   --cat-combat: #f44b6c;
