@@ -5,6 +5,7 @@ import { CATEGORY_ICONS_MAP } from '../icons';
 import { ActionIcons } from '../icons';
 import { inferCategory } from '../utils/categoryInfer';
 import KeyboardLayout from './KeyboardLayout';
+import MouseLayout from './MouseLayout';
 
 interface Props {
   game: GameConfig;
@@ -148,6 +149,14 @@ export default function GameDetail({
       </div>
 
       <KeyboardLayout
+        keybindings={game.keybindings}
+        highlightKeys={boundKeys}
+        onUpdateKeybinding={(index, kb) => onUpdateKeybinding(game.id, index, kb)}
+        onRemoveKeybinding={(index) => onRemoveKeybinding(game.id, index)}
+        onAddKeybinding={(kb) => onAddKeybinding(game.id, kb)}
+      />
+
+      <MouseLayout
         keybindings={game.keybindings}
         highlightKeys={boundKeys}
         onUpdateKeybinding={(index, kb) => onUpdateKeybinding(game.id, index, kb)}
