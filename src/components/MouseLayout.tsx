@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { Keybinding, KeyCategory } from '@/types';
 import { CATEGORY_LABELS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '@/types';
 import { CATEGORY_ICONS_MAP } from '@/icons';
-import { inferCategory } from '@/utils/categoryInfer';
+import { useKeybindingEditor } from '@/hooks/useKeybindingEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,7 @@ interface Props {
 interface MouseArea {
   code: string;
   label: string;
-  // 矩形区域 [x, y, w, h]
   rect: [number, number, number, number];
-  // 文字位置
   tx: number;
   ty: number;
 }
@@ -42,14 +40,6 @@ const MOUSE_AREAS: MouseArea[] = [
   { code: 'Mouse4', label: '侧键下', rect: [15, 65, 18, 22],  tx: 24,  ty: 80 },
 ];
 
-interface EditingKey {
-  code: string;
-  index: number;
-  action: string;
-  category: KeyCategory;
-  categoryManual: boolean;
-}
-
 export default function MouseLayout({
   keybindings,
   highlightKeys,
@@ -57,42 +47,21 @@ export default function MouseLayout({
   onRemoveKeybinding,
   onAddKeybinding,
 }: Props) {
-  const [editing, setEditing] = useState<EditingKey | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const bottomBarRef = useRef<HTMLDivElement>(null);
-
-  const kbMap = new Map<string, { binding: Keybinding; index: number }>();
-  keybindings.forEach((kb, idx) => kbMap.set(kb.key, { binding: kb, index: idx }));
-
-  useEffect(() => {
-    if (editing) {
-      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select(); }, 30);
-    }
-  }, [editing]);
-
-  const handleClick = (code: string) => {
-    if (editing?.code === code) { setEditing(null); return; }
-    const entry = kbMap.get(code);
-    if (entry) {
-      setEditing({ code, index: entry.index, action: entry.binding.action, category: entry.binding.category, categoryManual: false });
-    } else if (onAddKeybinding) {
-      setEditing({ code, index: -1, action: '', category: 'combat', categoryManual: false });
-    }
-  };
-
-  const save = () => {
-    if (!editing || !editing.action.trim()) { setEditing(null); return; }
-    const kb: Keybinding = { key: editing.code, action: editing.action.trim(), category: editing.category };
-    if (editing.index >= 0) onUpdateKeybinding?.(editing.index, kb);
-    else onAddKeybinding?.(kb);
-    setEditing(null);
-  };
-
-  const remove = () => {
-    if (!editing || editing.index < 0) return;
-    if (confirm('删除这个键位？')) { onRemoveKeybinding?.(editing.index); setEditing(null); }
-  };
+  const {
+    editing,
+    setEditing,
+    inputRef,
+    bottomBarRef,
+    kbMap,
+    handleClick,
+    save,
+    remove,
+    updateAction,
+    updateCategory,
+    handleBlur,
+    handleKeyDown,
+  } = useKeybindingEditor({ keybindings, onUpdateKeybinding, onRemoveKeybinding, onAddKeybinding });
 
   const editingCatIcon = editing ? CATEGORY_ICONS_MAP[editing.category] : null;
 
@@ -106,8 +75,7 @@ export default function MouseLayout({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         {/* SVG 鼠标 */}
-        <svg viewBox="0 0 200 160" width={260} height={208} className="drop-shadow-lg">
-          {/* 鼠标外壳 — 更精细的形状 */}
+        <svg viewBox="0 0 200 160" width={260} height={208} className="drop-shadow-lg" role="img" aria-label="鼠标布局可视化">
           <defs>
             <linearGradient id="mouseBody" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--muted)" />
@@ -153,7 +121,6 @@ export default function MouseLayout({
             const isBound = !!kb;
             const isEditing = editing?.code === area.code;
             const isHovered = hovered === area.code;
-
             const [rx, ry, rw, rh] = area.rect;
             const catColor = kb ? `var(--cat-${kb.category})` : undefined;
 
@@ -161,7 +128,16 @@ export default function MouseLayout({
               <g
                 key={area.code}
                 className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={kb ? `${area.label}: ${kb.action}（点击编辑）` : `${area.label}（点击绑定）`}
                 onClick={() => handleClick(area.code)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleClick(area.code);
+                  }
+                }}
                 onMouseEnter={() => setHovered(area.code)}
                 onMouseLeave={() => setHovered(null)}
               >
@@ -196,19 +172,17 @@ export default function MouseLayout({
                   className="transition-all duration-150"
                 />
 
-                {/* 文字标签 */}
-                {!isEditing ? (
+                {/* 文字标签（非编辑态） */}
+                {!isEditing && (
                   <>
                     <text
                       x={area.tx}
                       y={isBound ? area.ty - 5 : area.ty + 1}
                       textAnchor="middle"
                       fill={
-                        isEditing
+                        isBound
                           ? 'var(--accent)'
-                          : isBound
-                            ? 'var(--accent)'
-                            : 'var(--muted-foreground)'
+                          : 'var(--muted-foreground)'
                       }
                       fontSize={isBound ? 9 : 10}
                       fontWeight={isBound ? 700 : 500}
@@ -230,7 +204,6 @@ export default function MouseLayout({
                         >
                           {kb.action.length > 5 ? kb.action.slice(0, 5) + '…' : kb.action}
                         </text>
-                        {/* 分类小圆点 */}
                         <circle
                           cx={area.tx}
                           cy={area.ty + 14}
@@ -254,12 +227,12 @@ export default function MouseLayout({
                       </text>
                     )}
                   </>
-                ) : null}
+                )}
               </g>
             );
           })}
 
-          {/* 编辑态输入框（放在最上层） */}
+          {/* 编辑态输入框 */}
           {editing && (() => {
             const area = MOUSE_AREAS.find((a) => a.code === editing.code)!;
             const [rx, ry, rw, rh] = area.rect;
@@ -268,31 +241,12 @@ export default function MouseLayout({
                 <Input
                   ref={inputRef}
                   value={editing.action}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    const updates: Partial<EditingKey> = { action: v };
-                    if (!editing.categoryManual) {
-                      const inferred = inferCategory(v);
-                      if (inferred) updates.category = inferred;
-                    }
-                    setEditing({ ...editing, ...updates });
-                  }}
+                  onChange={(e) => updateAction(e.target.value)}
                   placeholder="动作..."
                   className="h-full w-full rounded-sm px-1 text-center text-[10px]"
                   onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') save();
-                    if (e.key === 'Escape') setEditing(null);
-                    e.stopPropagation();
-                  }}
-                  onBlur={(e) => {
-                    const rt = e.relatedTarget as HTMLElement | null;
-                    if (rt && bottomBarRef.current?.contains(rt)) return;
-                    setTimeout(() => {
-                      if (bottomBarRef.current?.contains(document.activeElement)) return;
-                      save();
-                    }, 0);
-                  }}
+                  onKeyDown={handleKeyDown as (e: React.KeyboardEvent<HTMLInputElement>) => void}
+                  onBlur={handleBlur as (e: React.FocusEvent<HTMLInputElement>) => void}
                 />
               </foreignObject>
             );
@@ -339,7 +293,7 @@ export default function MouseLayout({
               {editingCatIcon && <editingCatIcon className="size-4 text-muted-foreground" />}
               <Select
                 value={editing.category}
-                onValueChange={(v) => setEditing({ ...editing, category: v as KeyCategory, categoryManual: true })}
+                onValueChange={(v) => updateCategory(v as KeyCategory)}
               >
                 <SelectTrigger className="h-8 w-[120px]">
                   <SelectValue />
