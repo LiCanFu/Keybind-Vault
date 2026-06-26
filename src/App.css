@@ -17,13 +17,14 @@
    ============================================================ */
 
 .keyboard-container {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px 12px;
   margin-bottom: 20px;
   overflow-x: auto;
   position: relative;
+  color: var(--foreground);
 }
 
 .keyboard-row {
@@ -90,9 +91,9 @@
   gap: 4px;
   padding: 6px 12px;
   border-radius: 4px;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--foreground);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s;
@@ -100,7 +101,8 @@
 }
 
 .btn:hover {
-  background: hsl(var(--accent));
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 .btn:disabled {
@@ -109,9 +111,9 @@
 }
 
 .btn-primary {
-  background: hsl(var(--primary));
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
   font-weight: 500;
 }
 
@@ -120,13 +122,13 @@
 }
 
 .btn-danger {
-  color: hsl(var(--destructive));
+  color: var(--destructive);
 }
 
 .btn-danger:hover {
-  background: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
-  border-color: hsl(var(--destructive));
+  background: var(--destructive);
+  color: var(--primary-foreground);
+  border-color: var(--destructive);
 }
 
 .btn-sm {
@@ -141,9 +143,9 @@
 .input {
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--foreground);
   font-size: 13px;
   width: 100%;
   outline: none;
@@ -151,7 +153,7 @@
 }
 
 .input:focus {
-  border-color: hsl(var(--ring));
+  border-color: var(--ring);
 }
 
 select.input {
@@ -159,8 +161,8 @@ select.input {
 }
 
 .kbd {
-  background: hsl(var(--muted));
-  border: 1px solid hsl(var(--border));
+  background: var(--muted);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 2px 8px;
   font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
@@ -168,7 +170,7 @@ select.input {
   font-weight: 600;
   min-width: 70px;
   text-align: center;
-  color: hsl(var(--primary));
+  color: var(--primary);
 }
 
 .kbd-sm {
@@ -179,9 +181,10 @@ select.input {
 }
 
 .card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 8px;
+  color: var(--card-foreground);
 }
 
 /* ============================================================
@@ -197,10 +200,10 @@ select.input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: var(--border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: var(--muted-foreground);
 }
