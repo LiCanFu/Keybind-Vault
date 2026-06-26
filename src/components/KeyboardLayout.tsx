@@ -3,6 +3,15 @@ import type { Keybinding, KeyCategory } from '../types';
 import { KEY_DISPLAY_NAMES, KEYBOARD_ROWS, CATEGORY_LABELS, CATEGORY_ORDER } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
 import { inferCategory } from '../utils/categoryInfer';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Props {
   keybindings: Keybinding[];
@@ -116,16 +125,16 @@ export default function KeyboardLayout({
                     width: key.w * 48 - 4,
                     height: isBound ? 56 : 48,
                     border: isEditing
-                      ? '2px solid var(--accent-hover)'
+                      ? '2px solid var(--accent)'
                       : isBound
                         ? `2px solid ${catColor || 'var(--accent)'}`
                         : '1px solid var(--border)',
                     background: isEditing
-                      ? 'var(--accent)22'
+                      ? 'color-mix(in oklch, var(--accent) 15%, transparent)'
                       : isBound
-                        ? `${catColor || 'var(--accent)'}22`
-                        : 'var(--bg-tertiary)',
-                    color: isBound ? catColor || 'var(--accent)' : 'var(--text-secondary)',
+                        ? `color-mix(in oklch, ${catColor || 'var(--accent)'} 15%, transparent)`
+                        : 'var(--muted)',
+                    color: isBound ? catColor || 'var(--accent)' : 'var(--muted-foreground)',
                     flexShrink: 0,
                     cursor: isBound || onAddKeybinding ? 'pointer' : 'default',
                   }}
@@ -216,7 +225,7 @@ export default function KeyboardLayout({
                         fontSize: 10,
                         padding: '2px 3px',
                         textAlign: 'center',
-                        background: 'var(--bg-primary)',
+                        background: 'var(--background)',
                         border: '1px solid var(--accent)',
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -248,48 +257,48 @@ export default function KeyboardLayout({
       {editing && (
         <div
           ref={bottomBarRef}
-          className="card"
-          style={{
-            marginTop: 8,
-            padding: '8px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
-          }}
+          className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3"
+          style={{ marginTop: 8 }}
         >
-          <kbd className="kbd kbd-sm" style={{ minWidth: 40, fontSize: 11 }}>
+          <Badge variant="outline" className="shrink-0 font-mono">
             {KEY_DISPLAY_NAMES[editing.code] || editing.code}
-          </kbd>
+          </Badge>
 
-          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>分类：</span>
-          <select
-            className="input"
+          <span className="text-xs text-muted-foreground">分类：</span>
+          <Select
             value={editing.category}
-            onChange={(e) => setEditing({ ...editing, category: e.target.value as KeyCategory, categoryManual: true })}
-            style={{ width: 'auto', fontSize: 12, padding: '2px 6px' }}
+            onValueChange={(v) => setEditing({ ...editing, category: v as KeyCategory, categoryManual: true })}
           >
-            {CATEGORY_ORDER.map((cat) => (
-              <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-7 w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORY_ORDER.map((cat) => {
+                const CatItemIcon = CATEGORY_ICONS_MAP[cat];
+                return (
+                  <SelectItem key={cat} value={cat}>
+                    <span className="flex items-center gap-1.5">
+                      <CatItemIcon className="size-3" />
+                      {CATEGORY_LABELS[cat]}
+                    </span>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
 
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          <div className="ml-auto flex gap-1.5">
             {editing.index >= 0 && (
-              <button className="btn btn-sm btn-danger" onClick={remove}>
+              <Button size="sm" variant="destructive" onClick={remove}>
                 删除
-              </button>
+              </Button>
             )}
-            <button className="btn btn-sm" onClick={() => setEditing(null)}>
+            <Button size="sm" variant="outline" onClick={() => setEditing(null)}>
               取消
-            </button>
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={save}
-              disabled={!editing.action.trim()}
-            >
+            </Button>
+            <Button size="sm" onClick={save} disabled={!editing.action.trim()}>
               {editing.index >= 0 ? '保存' : '绑定'}
-            </button>
+            </Button>
           </div>
         </div>
       )}

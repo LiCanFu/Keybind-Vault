@@ -11,12 +11,10 @@ import {
   Monitor,
   Pin,
   Home,
-  BarChart3,
   GitCompareArrows,
   Plus,
   Edit3,
   Trash2,
-  Save,
   Download,
   Upload,
   RotateCcw,
@@ -43,7 +41,6 @@ export const NavIcons = {
   Home,
   Compare: GitCompareArrows,
   Gamepad2,
-  BarChart3,
 };
 
 // 操作图标
@@ -51,7 +48,6 @@ export const ActionIcons = {
   Plus,
   Edit: Edit3,
   Trash: Trash2,
-  Save,
   Download,
   Upload,
   Reset: RotateCcw,

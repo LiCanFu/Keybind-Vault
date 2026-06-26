@@ -21,7 +21,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'destr
   same:      { label: '相同', variant: 'secondary',   color: 'text-muted-foreground' },
   conflict:  { label: '冲突', variant: 'destructive', color: 'text-destructive' },
   'only-a':  { label: '仅A', variant: 'outline',      color: 'text-primary' },
-  'only-b':  { label: '仅B', variant: 'outline',      color: 'text-orange-400' },
+  'only-b':  { label: '仅B', variant: 'outline',      color: 'text-accent-foreground' },
 };
 
 export default function CompareView({ games }: Props) {
@@ -94,7 +94,7 @@ export default function CompareView({ games }: Props) {
             <SelectValue placeholder="选择游戏 A" />
           </SelectTrigger>
           <SelectContent>
-            {games.map((g) => (
+            {games.filter((g) => g.id !== bId).map((g) => (
               <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
             ))}
           </SelectContent>
@@ -127,7 +127,7 @@ export default function CompareView({ games }: Props) {
             <Badge variant="outline" className="gap-1.5">
               A 仅A <span className="font-mono">{stats.onlyA}</span>
             </Badge>
-            <Badge variant="outline" className="gap-1.5 text-orange-400">
+            <Badge variant="outline" className="gap-1.5 text-accent-foreground">
               B 仅B <span className="font-mono">{stats.onlyB}</span>
             </Badge>
           </div>
@@ -146,7 +146,7 @@ export default function CompareView({ games }: Props) {
                       {row.a || '—'}
                     </span>
                     <span className="shrink-0 text-xs text-muted-foreground">vs</span>
-                    <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-b' ? 'text-orange-400' : 'text-muted-foreground'}`} role="cell">
+                    <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-b' ? 'text-accent-foreground' : 'text-muted-foreground'}`} role="cell">
                       {row.b || '—'}
                     </span>
                     <Badge variant={cfg.variant} className="shrink-0 text-xs">{cfg.label}</Badge>
@@ -159,6 +159,10 @@ export default function CompareView({ games }: Props) {
       )}
 
       {!comparison && gameA && gameB && (
+        <p className="py-8 text-center text-sm text-muted-foreground">这两个游戏没有可对比的键位</p>
+      )}
+
+      {comparison && comparison.length === 0 && (
         <p className="py-8 text-center text-sm text-muted-foreground">这两个游戏没有可对比的键位</p>
       )}
     </div>

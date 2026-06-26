@@ -110,8 +110,8 @@ export default function MouseLayout({
           {/* 鼠标外壳 — 更精细的形状 */}
           <defs>
             <linearGradient id="mouseBody" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--bg-tertiary)" />
-              <stop offset="100%" stopColor="var(--bg-secondary)" />
+              <stop offset="0%" stopColor="var(--muted)" />
+              <stop offset="100%" stopColor="var(--secondary)" />
             </linearGradient>
             <filter id="innerShadow">
               <feOffset dx="0" dy="2" />
@@ -135,7 +135,7 @@ export default function MouseLayout({
           <line x1="100" y1="8" x2="100" y2="72" stroke="var(--border)" strokeWidth="1" />
 
           {/* 滚轮凹槽 */}
-          <rect x="94" y="18" width="12" height="30" rx="6" fill="var(--bg-secondary)" stroke="var(--border)" strokeWidth="1" />
+          <rect x="94" y="18" width="12" height="30" rx="6" fill="var(--secondary)" stroke="var(--border)" strokeWidth="1" />
 
           {/* 滚轮纹理 */}
           {[22, 26, 30, 34, 42].map((y) => (
@@ -143,8 +143,8 @@ export default function MouseLayout({
           ))}
 
           {/* 侧键区域 */}
-          <rect x="44" y="38" width="8" height="20" rx="2" fill="var(--bg-secondary)" stroke="var(--border)" strokeWidth="1" />
-          <rect x="44" y="62" width="8" height="20" rx="2" fill="var(--bg-secondary)" stroke="var(--border)" strokeWidth="1" />
+          <rect x="44" y="38" width="8" height="20" rx="2" fill="var(--secondary)" stroke="var(--border)" strokeWidth="1" />
+          <rect x="44" y="62" width="8" height="20" rx="2" fill="var(--secondary)" stroke="var(--border)" strokeWidth="1" />
 
           {/* 可点击区域 */}
           {MOUSE_AREAS.map((area) => {
@@ -178,7 +178,7 @@ export default function MouseLayout({
                       : isBound
                         ? 'var(--accent)'
                         : isHovered
-                          ? 'var(--text-secondary)'
+                          ? 'var(--muted-foreground)'
                           : 'transparent'
                   }
                   fillOpacity={isEditing ? 0.25 : isBound ? 0.12 : isHovered ? 0.08 : 0}
@@ -188,7 +188,7 @@ export default function MouseLayout({
                       : isBound
                         ? 'var(--accent)'
                         : isHovered
-                          ? 'var(--text-secondary)'
+                          ? 'var(--muted-foreground)'
                           : 'transparent'
                   }
                   strokeOpacity={isEditing ? 1 : isBound ? 0.6 : isHovered ? 0.3 : 0}
@@ -208,7 +208,7 @@ export default function MouseLayout({
                           ? 'var(--accent)'
                           : isBound
                             ? 'var(--accent)'
-                            : 'var(--text-secondary)'
+                            : 'var(--muted-foreground)'
                       }
                       fontSize={isBound ? 9 : 10}
                       fontWeight={isBound ? 700 : 500}
@@ -223,7 +223,7 @@ export default function MouseLayout({
                           x={area.tx}
                           y={area.ty + 6}
                           textAnchor="middle"
-                          fill="var(--text-primary)"
+                          fill="var(--foreground)"
                           fontSize={9}
                           fontWeight={600}
                           className="pointer-events-none select-none"
@@ -299,7 +299,7 @@ export default function MouseLayout({
           })()}
 
           {/* 底部光泽 */}
-          <ellipse cx="100" cy="152" rx="30" ry="3" fill="var(--text-secondary)" fillOpacity="0.05" />
+          <ellipse cx="100" cy="152" rx="30" ry="3" fill="var(--muted-foreground)" fillOpacity="0.05" />
         </svg>
 
         {/* 已绑定键位标签 */}
