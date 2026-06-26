@@ -1,9 +1,30 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import type { GameConfig } from './types';
 import { useGameConfigs } from './hooks/useGameConfigs';
 import { NavIcons, ActionIcons } from './icons';
 import GameDetail from './components/GameDetail';
 import CompareView from './components/CompareView';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import './App.css';
 
 type Page = 'dashboard' | 'detail' | 'compare';
@@ -30,13 +51,18 @@ export default function App() {
   const [newGenre, setNewGenre] = useState<GameConfig['genre']>('FPS');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 从 games 实时派生，避免编辑后显示旧数据
+  // 主题切换
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
+
   const selectedGame = selectedGameId ? games.find((g) => g.id === selectedGameId) ?? null : null;
 
   if (loading) {
     return (
-      <div className="flex items-center" style={{ justifyContent: 'center', height: '100vh' }}>
-        <p className="text-secondary">加载中...</p>
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">加载中...</p>
       </div>
     );
   }
@@ -47,56 +73,56 @@ export default function App() {
   };
 
   return (
-    <div className="app">
+    <div className="flex h-screen">
       {/* 侧边栏 */}
-      <aside className="sidebar" role="navigation" aria-label="主导航">
-        <div className="sidebar-header">
-          <h1 className="logo">
-            <NavIcons.Gamepad2 size={24} />
-            <span>Keybind Vault</span>
+      <aside className="flex w-60 shrink-0 flex-col border-r bg-card" role="navigation" aria-label="主导航">
+        <div className="p-4">
+          <h1 className="flex items-center gap-2 text-lg font-bold">
+            <NavIcons.Gamepad2 className="size-5" />
+            Keybind Vault
           </h1>
-          <p className="subtitle">游戏键盘配置备忘录</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">游戏键盘配置备忘录</p>
         </div>
 
-        <nav className="sidebar-nav">
-          <button
-            className={`nav-item ${page === 'dashboard' ? 'active' : ''}`}
+        <Separator />
+
+        <nav className="flex-1 space-y-1 p-3">
+          <Button
+            variant={page === 'dashboard' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
             onClick={() => navigateTo('dashboard')}
             aria-current={page === 'dashboard' ? 'page' : undefined}
           >
-            <NavIcons.Home size={16} /> 游戏列表
-          </button>
-          <button
-            className={`nav-item ${page === 'compare' ? 'active' : ''}`}
+            <NavIcons.Home className="size-4" /> 游戏列表
+          </Button>
+          <Button
+            variant={page === 'compare' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
             onClick={() => navigateTo('compare')}
             aria-current={page === 'compare' ? 'page' : undefined}
           >
-            <NavIcons.Compare size={16} /> 键位对比
-          </button>
+            <NavIcons.Compare className="size-4" /> 键位对比
+          </Button>
         </nav>
 
-        <div className="sidebar-actions">
-          <button
-            className="btn btn-primary w-full"
-            onClick={() => setShowNewDialog(true)}
-            aria-label="新建游戏配置"
-          >
-            <ActionIcons.Plus size={14} /> 新建配置
-          </button>
+        <div className="space-y-2 p-3">
+          <Button className="w-full gap-1.5" onClick={() => setShowNewDialog(true)} aria-label="新建游戏配置">
+            <ActionIcons.Plus className="size-4" /> 新建配置
+          </Button>
         </div>
 
-        <div className="sidebar-footer">
-          <button className="btn btn-sm" onClick={handleExport} title="导出全部配置" aria-label="导出配置">
-            <ActionIcons.Download size={12} /> 导出
-          </button>
-          <button
-            className="btn btn-sm"
-            onClick={() => fileInputRef.current?.click()}
-            title="导入配置"
-            aria-label="导入配置"
-          >
-            <ActionIcons.Upload size={12} /> 导入
-          </button>
+        <Separator />
+
+        <div className="flex gap-1.5 p-3">
+          <Button variant="outline" size="sm" className="flex-1" onClick={handleExport} title="导出全部配置">
+            <ActionIcons.Download className="size-3.5" /> 导出
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => fileInputRef.current?.click()} title="导入配置">
+            <ActionIcons.Upload className="size-3.5" /> 导入
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => { if (confirm('确定要重置为默认配置吗？')) reset(); }} title="重置为默认">
+            <ActionIcons.Reset className="size-3.5" /> 重置
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -118,76 +144,84 @@ export default function App() {
               e.target.value = '';
             }}
           />
-          <button
-            className="btn btn-sm"
-            onClick={() => {
-              if (confirm('确定要重置为默认配置吗？所有修改将丢失！')) reset();
-            }}
-            title="重置为默认"
-            aria-label="重置配置"
-          >
-            <ActionIcons.Reset size={12} /> 重置
-          </button>
+        </div>
+
+        <Separator />
+
+        <div className="p-3">
+          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={() => setDark(!dark)}>
+            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            {dark ? '亮色模式' : '暗色模式'}
+          </Button>
         </div>
       </aside>
 
       {/* 主区域 */}
-      <main className="main" role="main">
+      <main className="flex-1 overflow-auto" role="main">
         {page === 'dashboard' && (
-          <div style={{ padding: 24 }}>
-            <h2 style={{ marginBottom: 8 }}>
-              <NavIcons.Gamepad2 size={20} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-              我的游戏
-            </h2>
-            <p className="text-secondary text-sm" style={{ marginBottom: 20 }}>
-              共 {games.length} 个游戏配置，点击进入查看和编辑键位
-            </p>
+          <div className="mx-auto max-w-[1000px] space-y-5 p-6">
+            <div>
+              <h2 className="flex items-center gap-2 text-xl font-semibold">
+                <NavIcons.Gamepad2 className="size-5" />
+                我的游戏
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                共 {games.length} 个游戏配置，点击进入查看和编辑键位
+              </p>
+            </div>
 
-            <div className="game-grid" role="list" aria-label="游戏配置列表">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-label="游戏配置列表">
               {games.map((game) => (
-                <div
+                <Card
                   key={game.id}
-                  className="game-card card"
+                  className="cursor-pointer transition-colors hover:bg-accent/50"
                   onClick={() => navigateTo('detail', game.id)}
-                  style={{ cursor: 'pointer' }}
                   role="listitem"
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === 'Enter') navigateTo('detail', game.id); }}
                   aria-label={`${game.name} - ${game.keybindings.length} 个键位`}
                 >
-                  <div className="game-card-header">
-                    <h3 className="game-card-name">{game.name}</h3>
-                    <span className="badge badge-genre">{game.genre}</span>
-                  </div>
-                  <p className="game-card-meta">{game.keybindings.length} 个键位</p>
-                  <p className="game-card-meta text-xs">
-                    更新于 {new Date(game.updatedAt).toLocaleString('zh-CN')}
-                  </p>
-                  <div className="game-card-actions">
-                    <button
-                      className="btn btn-sm"
-                      onClick={(e) => { e.stopPropagation(); navigateTo('detail', game.id); }}
-                      aria-label={`编辑 ${game.name}`}
-                    >
-                      <ActionIcons.Edit size={12} /> 编辑
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`确定删除 "${game.name}" 吗？`)) removeGame(game.id);
-                      }}
-                      aria-label={`删除 ${game.name}`}
-                    >
-                      <ActionIcons.Trash size={12} /> 删除
-                    </button>
-                  </div>
-                </div>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{game.name}</CardTitle>
+                      <Badge variant="secondary">{game.genre}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm text-muted-foreground">
+                      {game.keybindings.length} 个键位
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      更新于 {new Date(game.updatedAt).toLocaleString('zh-CN')}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={(e) => { e.stopPropagation(); navigateTo('detail', game.id); }}
+                      >
+                        <ActionIcons.Edit className="size-3.5" /> 编辑
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`确定删除 "${game.name}" 吗？`)) removeGame(game.id);
+                        }}
+                      >
+                        <ActionIcons.Trash className="size-3.5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
             {games.length === 0 && (
-              <p className="empty-state">还没有游戏配置，点击左侧「新建配置」开始</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">还没有游戏配置，点击左侧「新建配置」开始</p>
             )}
           </div>
         )}
@@ -208,57 +242,54 @@ export default function App() {
       </main>
 
       {/* 新建游戏对话框 */}
-      {showNewDialog && (
-        <div className="modal-overlay" onClick={() => setShowNewDialog(false)} role="dialog" aria-modal="true" aria-label="新建游戏配置">
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3>新建游戏配置</h3>
-              <button className="btn btn-icon btn-sm" onClick={() => setShowNewDialog(false)} aria-label="关闭">
-                <ActionIcons.X size={14} />
-              </button>
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label className="editor-label">游戏名称</label>
-              <input
-                type="text"
-                className="input"
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新建游戏配置</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="mb-1.5 block text-sm text-muted-foreground">游戏名称</label>
+              <Input
                 placeholder="如 Apex Legends, 英雄联盟..."
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <label className="editor-label">游戏类型</label>
-              <select
-                className="input"
-                value={newGenre}
-                onChange={(e) => setNewGenre(e.target.value as GameConfig['genre'])}
-              >
-                <option value="FPS">FPS</option>
-                <option value="Tactical FPS">Tactical FPS（战术射击）</option>
-                <option value="MOBA">MOBA</option>
-                <option value="Other">Other（其他）</option>
-              </select>
-            </div>
-            <div className="flex gap-8" style={{ justifyContent: 'flex-end' }}>
-              <button className="btn" onClick={() => setShowNewDialog(false)}>取消</button>
-              <button
-                className="btn btn-primary"
-                disabled={!newName.trim()}
-                onClick={() => {
-                  addGame(newName.trim(), newGenre);
-                  setNewName('');
-                  setNewGenre('FPS');
-                  setShowNewDialog(false);
-                }}
-              >
-                <ActionIcons.Plus size={14} /> 创建
-              </button>
+            <div>
+              <label className="mb-1.5 block text-sm text-muted-foreground">游戏类型</label>
+              <Select value={newGenre} onValueChange={(v) => setNewGenre(v as GameConfig['genre'])}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FPS">FPS</SelectItem>
+                  <SelectItem value="Tactical FPS">Tactical FPS（战术射击）</SelectItem>
+                  <SelectItem value="MOBA">MOBA</SelectItem>
+                  <SelectItem value="Other">Other（其他）</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">取消</Button>
+            </DialogClose>
+            <Button
+              disabled={!newName.trim()}
+              onClick={() => {
+                addGame(newName.trim(), newGenre);
+                setNewName('');
+                setNewGenre('FPS');
+                setShowNewDialog(false);
+              }}
+            >
+              <ActionIcons.Plus className="size-4" /> 创建
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

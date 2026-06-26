@@ -1,17 +1,27 @@
 import { useState, useMemo } from 'react';
-import type { GameConfig } from '../types';
-import { KEY_DISPLAY_NAMES } from '../types';
-import { NavIcons } from '../icons';
+import type { GameConfig } from '@/types';
+import { KEY_DISPLAY_NAMES } from '@/types';
+import { NavIcons } from '@/icons';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
   games: GameConfig[];
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  same: '相同',
-  conflict: '冲突',
-  'only-a': '仅A',
-  'only-b': '仅B',
+const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'destructive' | 'secondary' | 'outline'; color: string }> = {
+  same:      { label: '相同', variant: 'secondary',   color: 'text-muted-foreground' },
+  conflict:  { label: '冲突', variant: 'destructive', color: 'text-destructive' },
+  'only-a':  { label: '仅A', variant: 'outline',      color: 'text-primary' },
+  'only-b':  { label: '仅B', variant: 'outline',      color: 'text-orange-400' },
 };
 
 export default function CompareView({ games }: Props) {
@@ -68,92 +78,88 @@ export default function CompareView({ games }: Props) {
   }, [comparison]);
 
   return (
-    <div className="compare-header">
-      <h2 className="compare-title">
-        <NavIcons.Compare size={20} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-        键位对比
-      </h2>
-      <p className="compare-desc">选择两个游戏配置，对比同一按键的不同功能</p>
-
-      <div className="compare-select-bar">
-        <select
-          className="input compare-select"
-          value={aId}
-          onChange={(e) => setAId(e.target.value)}
-          aria-label="选择游戏 A"
-        >
-          <option value="">-- 选择游戏 A --</option>
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
-        <span className="compare-vs">VS</span>
-        <select
-          className="input compare-select"
-          value={bId}
-          onChange={(e) => setBId(e.target.value)}
-          aria-label="选择游戏 B"
-        >
-          <option value="">-- 选择游戏 B --</option>
-          {games.filter((g) => g.id !== aId).map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+    <div className="mx-auto max-w-[900px] space-y-5 p-6">
+      <div>
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
+          <NavIcons.Compare className="size-5" />
+          键位对比
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">选择两个游戏配置，对比同一按键的不同功能</p>
       </div>
 
+      {/* 选择游戏 */}
+      <div className="flex items-center gap-3">
+        <Select value={aId} onValueChange={setAId}>
+          <SelectTrigger className="w-[200px]" aria-label="选择游戏 A">
+            <SelectValue placeholder="选择游戏 A" />
+          </SelectTrigger>
+          <SelectContent>
+            {games.map((g) => (
+              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Badge variant="outline" className="px-3 py-1 text-xs font-bold">VS</Badge>
+
+        <Select value={bId} onValueChange={setBId}>
+          <SelectTrigger className="w-[200px]" aria-label="选择游戏 B">
+            <SelectValue placeholder="选择游戏 B" />
+          </SelectTrigger>
+          <SelectContent>
+            {games.filter((g) => g.id !== aId).map((g) => (
+              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 统计 */}
       {comparison && stats && (
-        <div>
-          <div className="compare-stats">
-            <span>🟢 相同 ({stats.same})</span>
-            <span>🔴 冲突 ({stats.conflict})</span>
-            <span>🅰️ 仅A ({stats.onlyA})</span>
-            <span>🅱️ 仅B ({stats.onlyB})</span>
+        <>
+          <div className="flex gap-4">
+            <Badge variant="secondary" className="gap-1.5">
+              🟢 相同 <span className="font-mono">{stats.same}</span>
+            </Badge>
+            <Badge variant="destructive" className="gap-1.5">
+              🔴 冲突 <span className="font-mono">{stats.conflict}</span>
+            </Badge>
+            <Badge variant="outline" className="gap-1.5">
+              A 仅A <span className="font-mono">{stats.onlyA}</span>
+            </Badge>
+            <Badge variant="outline" className="gap-1.5 text-orange-400">
+              B 仅B <span className="font-mono">{stats.onlyB}</span>
+            </Badge>
           </div>
 
-          <div className="compare-list" role="table" aria-label="键位对比结果">
-            {comparison.map((row) => (
-              <div
-                key={row.key}
-                className={`compare-row card ${row.status === 'same' ? 'compare-row-same' : ''}`}
-                role="row"
-              >
-                <kbd className="kbd kbd-sm">{row.label}</kbd>
-                <span
-                  className="flex-1"
-                  style={{
-                    color: row.status === 'conflict'
-                      ? 'var(--danger)'
-                      : row.status === 'only-a'
-                        ? 'var(--accent)'
-                        : 'var(--text-secondary)',
-                  }}
-                  role="cell"
-                >
-                  {row.a || '—'}
-                </span>
-                <span className="text-secondary">vs</span>
-                <span
-                  className="flex-1"
-                  style={{
-                    color: row.status === 'conflict'
-                      ? 'var(--danger)'
-                      : row.status === 'only-b'
-                        ? 'var(--warning)'
-                        : 'var(--text-secondary)',
-                  }}
-                  role="cell"
-                >
-                  {row.b || '—'}
-                </span>
-                <span className="compare-status">{STATUS_LABEL[row.status]}</span>
-              </div>
-            ))}
+          <Separator />
+
+          {/* 对比列表 */}
+          <div className="flex flex-col gap-1.5" role="table" aria-label="键位对比结果">
+            {comparison.map((row) => {
+              const cfg = STATUS_CONFIG[row.status];
+              return (
+                <Card key={row.key} className={`py-2 ${row.status === 'same' ? 'opacity-60' : ''}`} role="row">
+                  <CardContent className="flex items-center gap-3 px-4">
+                    <Badge variant="outline" className="shrink-0 font-mono">{row.label}</Badge>
+                    <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-a' ? 'text-primary' : 'text-muted-foreground'}`} role="cell">
+                      {row.a || '—'}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">vs</span>
+                    <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-b' ? 'text-orange-400' : 'text-muted-foreground'}`} role="cell">
+                      {row.b || '—'}
+                    </span>
+                    <Badge variant={cfg.variant} className="shrink-0 text-xs">{cfg.label}</Badge>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-        </div>
+        </>
       )}
 
       {!comparison && gameA && gameB && (
-        <p className="empty-state">这两个游戏没有可对比的键位</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">这两个游戏没有可对比的键位</p>
       )}
     </div>
   );

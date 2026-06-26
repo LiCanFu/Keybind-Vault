@@ -1,20 +1,8 @@
 /* ============================================================
-   Keybind Vault — 全局样式
+   Keybind Vault — 键盘布局专用样式
    ============================================================ */
 
 :root {
-  --bg-primary: #0f1117;
-  --bg-secondary: #181b24;
-  --bg-tertiary: #242836;
-  --text-primary: #e4e8f0;
-  --text-secondary: #8b90a5;
-  --accent: #6c8cff;
-  --accent-hover: #8ba3ff;
-  --danger: #f44b6c;
-  --warning: #f0a050;
-  --success: #4bc48a;
-  --sidebar-width: 240px;
-
   --cat-movement: #6c8cff;
   --cat-combat: #f44b6c;
   --cat-abilities: #c084fc;
@@ -24,273 +12,195 @@
   --cat-other: #8b90a5;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body, #root {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-/* ============================================================
-   布局
-   ============================================================ */
-
-.app { display: flex; height: 100vh; }
-
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  padding: 16px; flex-shrink: 0;
-}
-.sidebar-header { margin-bottom: 20px; }
-.logo { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-
-.sidebar-nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
-.nav-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: var(--radius);
-  border: none; background: transparent;
-  color: var(--text-secondary); font-size: 13px;
-  cursor: pointer; text-align: left; transition: all 0.15s;
-}
-.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-.nav-item.active { background: var(--accent); color: #fff; }
-
-.sidebar-actions { margin-bottom: 16px; }
-.sidebar-footer { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px; }
-
-.main { flex: 1; overflow-y: auto; background: var(--bg-primary); }
-
-/* ============================================================
-   卡片
-   ============================================================ */
-
-.card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); }
-
-.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.game-card { padding: 16px; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
-.game-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108, 140, 255, 0.1); }
-.game-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.game-card-name { font-size: 15px; font-weight: 600; }
-.game-card-meta { font-size: 12px; color: var(--text-secondary); }
-.game-card-actions { margin-top: 8px; display: flex; gap: 4px; }
-
-/* ============================================================
-   按钮
-   ============================================================ */
-
-.btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 6px 12px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: var(--bg-tertiary);
-  color: var(--text-primary); font-size: 13px;
-  cursor: pointer; transition: all 0.15s; white-space: nowrap;
-}
-.btn:hover { background: var(--border); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-danger { color: var(--danger); }
-.btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-.btn-sm { padding: 4px 8px; font-size: 11px; }
-.btn-icon { padding: 4px; }
-
-/* ============================================================
-   表单
-   ============================================================ */
-
-.input {
-  padding: 6px 10px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: var(--bg-tertiary);
-  color: var(--text-primary); font-size: 13px;
-  width: 100%; outline: none; transition: border-color 0.15s;
-}
-.input:focus { border-color: var(--accent); }
-select.input { cursor: pointer; }
-.input-title { font-size: 22px; font-weight: 700; border: none; background: transparent; padding: 0; width: auto; min-width: 200px; }
-.input-mono { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
-
-/* ============================================================
-   标签
-   ============================================================ */
-
-.badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 100px;
-  font-size: 11px; font-weight: 500; background: var(--bg-tertiary);
-  color: var(--text-secondary); border: 1px solid var(--border);
-}
-.badge-genre { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-/* ============================================================
-   模态框
-   ============================================================ */
-
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-  display: flex; align-items: center; justify-content: center; z-index: 100;
-}
-.modal {
-  background: var(--bg-secondary); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; min-width: 360px; max-width: 480px;
-}
-
-/* ============================================================
-   详情页
-   ============================================================ */
-
-.detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.detail-count { color: var(--text-secondary); font-size: 13px; }
-
-.search-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.search-input { flex: 1; min-width: 200px; }
-
-.category-header { font-size: 15px; margin-bottom: 8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
-.kb-list { display: flex; flex-direction: column; gap: 4px; }
-
-.kb-item {
-  padding: 8px 12px; display: flex; align-items: center; gap: 12px;
-  transition: border-color 0.15s, background 0.15s;
-}
-.kb-item:hover { border-color: var(--accent); }
-
-.kbd {
-  background: var(--bg-tertiary); border: 1px solid var(--border);
-  border-radius: 6px; padding: 2px 8px;
-  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 13px; font-weight: 600; min-width: 70px; text-align: center; color: var(--accent);
-}
-.kbd-sm { padding: 1px 8px; font-size: 12px; border-radius: 4px; min-width: 60px; }
-
-.kb-action { flex: 1; }
-.kb-actions { display: flex; gap: 4px; }
-
-.empty-state { text-align: center; color: var(--text-secondary); padding: 40px; }
-
 /* ============================================================
    键盘可视化
    ============================================================ */
 
 .keyboard-container {
-  background: var(--bg-secondary); border-radius: 12px;
-  padding: 16px 12px; margin-bottom: 20px; overflow-x: auto;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 16px 12px;
+  margin-bottom: 20px;
+  overflow-x: auto;
   position: relative;
 }
-.mouse-container {
-  background: var(--bg-secondary); border-radius: 12px;
-  padding: 16px 12px; margin-bottom: 20px;
-  position: relative;
-  max-width: 320px;
-  margin-left: auto; margin-right: auto;
+
+.keyboard-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  justify-content: flex-start;
 }
-.keyboard-row { display: flex; gap: 4px; margin-bottom: 4px; justify-content: flex-start; }
 
 .keycap {
-  border-radius: 6px; font-size: 11px;
-  cursor: default; transition: all 0.15s; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: default;
+  transition: all 0.15s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
+
 .keycap-bound {
-  border-width: 2px; border-style: solid; font-weight: 600;
+  border-width: 2px;
+  border-style: solid;
+  font-weight: 600;
   cursor: pointer;
 }
+
 .keycap-bound:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
-.keycap-spacer { background: transparent; }
 
-.keycap-icon { font-size: 12px; margin-bottom: -2px; }
-.keycap-label { line-height: 1.2; text-align: center; }
+.keycap-spacer {
+  background: transparent;
+}
+
+.keycap-icon {
+  font-size: 12px;
+  margin-bottom: -2px;
+}
+
+.keycap-label {
+  line-height: 1.2;
+  text-align: center;
+}
+
 .keycap-action {
-  font-size: 9px; max-width: 100%; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap; line-height: 1.1;
+  font-size: 9px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.1;
 }
 
 /* ============================================================
-   对比视图
+   键盘视图内旧组件兼容（逐步迁移后移除）
    ============================================================ */
 
-.compare-header { padding: 24px; max-width: 900px; margin: 0 auto; }
-.compare-title { margin-bottom: 16px; }
-.compare-desc { color: var(--text-secondary); margin-bottom: 16px; font-size: 13px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
 
-.compare-select-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
-.compare-vs { font-weight: 700; color: var(--text-secondary); }
-.compare-select { flex: 1; }
+.btn:hover {
+  background: hsl(var(--accent));
+}
 
-.compare-stats { display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; }
-.compare-list { display: flex; flex-direction: column; gap: 3px; }
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-.compare-row {
-  padding: 6px 12px; display: flex; align-items: center; gap: 12px;
+.btn-primary {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-danger {
+  color: hsl(var(--destructive));
+}
+
+.btn-danger:hover {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border-color: hsl(var(--destructive));
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.btn-icon {
+  padding: 4px;
+}
+
+.input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-size: 13px;
+  width: 100%;
+  outline: none;
   transition: border-color 0.15s;
 }
-.compare-row:hover { border-color: var(--accent); }
-.compare-row-same { opacity: 0.5; }
-.compare-status { font-size: 12px; color: var(--text-secondary); width: 50px; text-align: right; }
 
-/* ============================================================
-   编辑器
-   ============================================================ */
+.input:focus {
+  border-color: hsl(var(--ring));
+}
 
-.editor-container { margin-top: 16px; padding: 16px; }
-.editor-inline { padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.editor-title { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.editor-fields { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; flex: 1; }
-.editor-field { min-width: 120px; }
-.editor-field-inline { min-width: 100px; }
-.editor-label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+select.input {
+  cursor: pointer;
+}
 
-.quick-keys-bar { margin-top: 12px; width: 100%; }
-.quick-keys-hint { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
-.quick-keys-grid { display: flex; flex-wrap: wrap; gap: 3px; }
-.quick-key { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 11px; padding: 2px 6px; }
+.kbd {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 70px;
+  text-align: center;
+  color: hsl(var(--primary));
+}
 
-/* ============================================================
-   通用
-   ============================================================ */
+.kbd-sm {
+  padding: 1px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  min-width: 60px;
+}
 
-.hidden { display: none; }
-.flex { display: flex; }
-.flex-col { display: flex; flex-direction: column; }
-.gap-4 { gap: 4px; }
-.gap-8 { gap: 8px; }
-.gap-12 { gap: 12px; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.flex-1 { flex: 1; }
-.flex-wrap { flex-wrap: wrap; }
-.w-full { width: 100%; }
-.text-center { text-align: center; }
-.text-secondary { color: var(--text-secondary); }
-.text-xs { font-size: 11px; }
-.text-sm { font-size: 13px; }
-
-/* ============================================================
-   响应式
-   ============================================================ */
-
-@media (max-width: 768px) {
-  .app { flex-direction: column; }
-  .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 8px 12px; border-right: none; border-bottom: 1px solid var(--border); }
-  .sidebar-header, .sidebar-nav, .sidebar-actions, .sidebar-footer { margin: 4px; }
-  .sidebar-nav { flex-direction: row; }
-  .sidebar-footer { margin-left: auto; }
-  .game-grid { grid-template-columns: 1fr; }
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
 }
 
 /* ============================================================
    滚动条
    ============================================================ */
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
