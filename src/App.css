@@ -12,6 +12,17 @@
   --cat-other: #8b90a5;
 }
 
+/* 暗色模式下提高分类颜色亮度 */
+.dark {
+  --cat-movement: #8ba8ff;
+  --cat-combat: #ff6b8a;
+  --cat-abilities: #d4a0ff;
+  --cat-items: #ffc06b;
+  --cat-communication: #6bdbaa;
+  --cat-ui: #5fd4ff;
+  --cat-other: #a5aabf;
+}
+
 /* ============================================================
    键盘可视化
    ============================================================ */
@@ -79,112 +90,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.1;
-}
-
-/* ============================================================
-   键盘视图内旧组件兼容（逐步迁移后移除）
-   ============================================================ */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--muted);
-  color: var(--foreground);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.btn:hover {
-  background: var(--accent);
-  color: var(--accent-foreground);
-}
-
-.btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
-  font-weight: 500;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-.btn-danger {
-  color: var(--destructive);
-}
-
-.btn-danger:hover {
-  background: var(--destructive);
-  color: var(--primary-foreground);
-  border-color: var(--destructive);
-}
-
-.btn-sm {
-  padding: 4px 8px;
-  font-size: 11px;
-}
-
-.btn-icon {
-  padding: 4px;
-}
-
-.input {
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--muted);
-  color: var(--foreground);
-  font-size: 13px;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.input:focus {
-  border-color: var(--ring);
-}
-
-select.input {
-  cursor: pointer;
-}
-
-.kbd {
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
-  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 70px;
-  text-align: center;
-  color: var(--primary);
-}
-
-.kbd-sm {
-  padding: 1px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  min-width: 60px;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--card-foreground);
 }
 
 /* ============================================================

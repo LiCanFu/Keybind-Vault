@@ -150,7 +150,7 @@ export default function KeyboardLayout({
                     <input
                       ref={inputRef}
                       type="text"
-                      className="input"
+                      className="rounded text-foreground outline-none transition-colors focus:border-ring"
                       value={editing.action}
                       onChange={(e) => updateAction(e.target.value)}
                       placeholder="输入动作..."
