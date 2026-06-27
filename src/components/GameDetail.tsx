@@ -16,6 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 
@@ -94,6 +102,42 @@ export default function GameDetail({
 }: Props) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<KeyCategory | 'all'>('all');
+
+  // 按键编辑 Dialog
+  const [keyEditOpen, setKeyEditOpen] = useState(false);
+  const [keyEditOrigIdx, setKeyEditOrigIdx] = useState(-1);
+  const [keyEditOrigKey, setKeyEditOrigKey] = useState('');
+  const [keyEditNewKey, setKeyEditNewKey] = useState('');
+
+  // 删除确认 Dialog
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ idx: number; action: string } | null>(null);
+
+  const openKeyEdit = (origIdx: number, currentKey: string) => {
+    setKeyEditOrigIdx(origIdx);
+    setKeyEditOrigKey(currentKey);
+    setKeyEditNewKey(currentKey);
+    setKeyEditOpen(true);
+  };
+
+  const commitKeyEdit = () => {
+    if (keyEditNewKey && keyEditNewKey !== keyEditOrigKey) {
+      const kb = game.keybindings[keyEditOrigIdx];
+      if (kb) onUpdateKeybinding(game.id, keyEditOrigIdx, { ...kb, key: keyEditNewKey });
+    }
+    setKeyEditOpen(false);
+  };
+
+  const openDelete = (idx: number, action: string) => {
+    setDeleteTarget({ idx, action });
+    setDeleteOpen(true);
+  };
+
+  const commitDelete = () => {
+    if (deleteTarget) onRemoveKeybinding(game.id, deleteTarget.idx);
+    setDeleteOpen(false);
+    setDeleteTarget(null);
+  };
 
   const filtered: IndexedKeybinding[] = useMemo(() => {
     const lowerSearch = search.toLowerCase();
@@ -203,10 +247,7 @@ export default function GameDetail({
                     <Badge
                       variant="outline"
                       className="shrink-0 cursor-pointer font-mono"
-                      onClick={() => {
-                        const newKey = prompt('输入新按键代码（如 KeyQ, Mouse0）：', kb.key);
-                        if (newKey && newKey !== kb.key) onUpdateKeybinding(game.id, kb.origIdx, { ...kb, key: newKey });
-                      }}
+                      onClick={() => openKeyEdit(kb.origIdx, kb.key)}
                       title="点击修改按键"
                     >
                       {KEY_DISPLAY_NAMES[kb.key] || kb.key}
@@ -236,7 +277,7 @@ export default function GameDetail({
                       variant="ghost"
                       size="icon"
                       className="size-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => { if (confirm(`删除 "${kb.action}" 键位？`)) onRemoveKeybinding(game.id, kb.origIdx); }}
+                      onClick={() => openDelete(kb.origIdx, kb.action)}
                       aria-label={`删除 ${kb.action}`}
                     >
                       <ActionIcons.Trash className="size-3.5" />
@@ -255,6 +296,54 @@ export default function GameDetail({
 
       {/* 底部新增键位 */}
       <KeyEditorInline onAdd={(kb) => onAddKeybinding(game.id, kb)} />
+
+      {/* 按键编辑 Dialog */}
+      <Dialog open={keyEditOpen} onOpenChange={setKeyEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>修改按键代码</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="block text-sm text-muted-foreground">
+              输入新按键代码（如 KeyQ, Mouse0, ControlLeft）
+            </label>
+            <Input
+              value={keyEditNewKey}
+              onChange={(e) => setKeyEditNewKey(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') commitKeyEdit(); }}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">取消</Button>
+            </DialogClose>
+            <Button onClick={commitKeyEdit} disabled={!keyEditNewKey.trim()}>
+              确认修改
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除确认 Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            确定删除「{deleteTarget?.action}」键位吗？此操作不可撤销。
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">取消</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={commitDelete}>
+              删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

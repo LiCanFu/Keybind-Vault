@@ -21,6 +21,8 @@ interface UseKeybindingEditorOptions {
   onUpdateKeybinding?: (index: number, kb: Keybinding) => void;
   onRemoveKeybinding?: (index: number) => void;
   onAddKeybinding?: (kb: Keybinding) => void;
+  /** 自定义删除确认（返回 true 则执行删除），不传则直接删除 */
+  onConfirmDelete?: () => Promise<boolean> | boolean;
 }
 
 export function useKeybindingEditor({
@@ -28,6 +30,7 @@ export function useKeybindingEditor({
   onUpdateKeybinding,
   onRemoveKeybinding,
   onAddKeybinding,
+  onConfirmDelete,
 }: UseKeybindingEditorOptions) {
   const [editing, setEditing] = useState<EditingKey | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -82,9 +85,10 @@ export function useKeybindingEditor({
   };
 
   /** 删除当前编辑的键位 */
-  const remove = () => {
+  const remove = async () => {
     if (!editing || editing.index < 0) return;
-    if (confirm('删除这个键位？')) {
+    const confirmed = onConfirmDelete ? await onConfirmDelete() : true;
+    if (confirmed) {
       onRemoveKeybinding?.(editing.index);
       setEditing(null);
     }
