@@ -135,13 +135,21 @@ export default function CompareView({ games }: Props) {
           <Separator />
 
           {/* 对比列表 */}
-          <div className="flex flex-col gap-1.5" role="table" aria-label="键位对比结果">
+          <div className="flex flex-col gap-1.5" role="grid" aria-label="键位对比结果">
+            {/* 表头 */}
+            <div role="row" className="flex items-center gap-3 px-4 py-1">
+              <div role="columnheader" className="shrink-0 w-16 text-xs font-medium text-muted-foreground">按键</div>
+              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameA.name}</div>
+              <div role="columnheader" className="shrink-0 w-8" />
+              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameB.name}</div>
+              <div role="columnheader" className="shrink-0 w-10 text-xs font-medium text-muted-foreground">状态</div>
+            </div>
             {comparison.map((row) => {
               const cfg = STATUS_CONFIG[row.status];
               return (
                 <Card key={row.key} className={`py-2 ${row.status === 'same' ? 'opacity-60' : ''}`} role="row">
                   <CardContent className="flex items-center gap-3 px-4">
-                    <Badge variant="outline" className="shrink-0 font-mono">{row.label}</Badge>
+                    <Badge variant="outline" className="shrink-0 font-mono" role="cell">{row.label}</Badge>
                     <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-a' ? 'text-primary' : 'text-muted-foreground'}`} role="cell">
                       {row.a || '—'}
                     </span>
@@ -149,7 +157,7 @@ export default function CompareView({ games }: Props) {
                     <span className={`flex-1 text-sm ${row.status === 'conflict' ? 'text-destructive' : row.status === 'only-b' ? 'text-accent-foreground' : 'text-muted-foreground'}`} role="cell">
                       {row.b || '—'}
                     </span>
-                    <Badge variant={cfg.variant} className="shrink-0 text-xs">{cfg.label}</Badge>
+                    <Badge variant={cfg.variant} className="shrink-0 text-xs" role="cell">{cfg.label}</Badge>
                   </CardContent>
                 </Card>
               );

@@ -51,6 +51,29 @@ export default function App() {
   const [newGenre, setNewGenre] = useState<GameConfig['genre']>('FPS');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 删除确认 Dialog
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  // 重置确认 Dialog
+  const [resetOpen, setResetOpen] = useState(false);
+
+  // 导入反馈 Dialog
+  const [importOpen, setImportOpen] = useState(false);
+  const [importOk, setImportOk] = useState(true);
+  const [importMsg, setImportMsg] = useState('');
+
+  const openDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+    setDeleteOpen(true);
+  };
+
+  const commitDelete = () => {
+    if (deleteTarget) removeGame(deleteTarget.id);
+    setDeleteOpen(false);
+    setDeleteTarget(null);
+  };
+
   // 主题切换
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
   useEffect(() => {
@@ -120,7 +143,7 @@ export default function App() {
           <Button variant="outline" size="sm" className="flex-1" onClick={() => fileInputRef.current?.click()} title="导入配置">
             <ActionIcons.Upload className="size-3.5" /> 导入
           </Button>
-          <Button variant="outline" size="sm" className="flex-1" onClick={() => { if (confirm('确定要重置为默认配置吗？')) reset(); }} title="重置为默认">
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => setResetOpen(true)} title="重置为默认">
             <ActionIcons.Reset className="size-3.5" /> 重置
           </Button>
           <input
@@ -135,9 +158,13 @@ export default function App() {
               reader.onload = () => {
                 try {
                   handleImport(reader.result as string);
-                  alert('导入成功！');
+                  setImportOk(true);
+                  setImportMsg('导入成功！');
+                  setImportOpen(true);
                 } catch (err: unknown) {
-                  alert('导入失败：' + (err instanceof Error ? err.message : String(err)));
+                  setImportOk(false);
+                  setImportMsg('导入失败：' + (err instanceof Error ? err.message : String(err)));
+                  setImportOpen(true);
                 }
               };
               reader.readAsText(file);
@@ -209,7 +236,7 @@ export default function App() {
                         className="text-destructive hover:bg-destructive/10"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`确定删除 "${game.name}" 吗？`)) removeGame(game.id);
+                          openDelete(game.id, game.name);
                         }}
                       >
                         <ActionIcons.Trash className="size-3.5" />
@@ -287,6 +314,61 @@ export default function App() {
             >
               <ActionIcons.Plus className="size-4" /> 创建
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除确认 Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            确定删除「{deleteTarget?.name}」游戏配置吗？此操作不可撤销。
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">取消</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={commitDelete}>
+              删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 重置确认 Dialog */}
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认重置</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            确定要重置为默认配置吗？所有自定义数据将被覆盖。
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">取消</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={() => { reset(); setResetOpen(false); }}>
+              重置
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 导入反馈 Dialog */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{importOk ? '导入完成' : '导入失败'}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{importMsg}</p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">确定</Button>
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

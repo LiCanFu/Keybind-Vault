@@ -99,11 +99,14 @@ test.describe('游戏管理', () => {
 
   test('删除游戏配置', async ({ page }) => {
     const initialCount = await page.locator('[role="listitem"]').count();
-    // 游戏删除仍用原生 confirm（非 keybinding 删除 Dialog）
-    page.on('dialog', (dialog) => dialog.accept());
 
-    // 删除按钮是 icon-only，通过 hover 颜色 class 定位
+    // 点击删除按钮（icon-only）
     await page.locator('[role="listitem"]').first().locator('button.text-destructive, button.hover\\:bg-destructive\\/10').click();
+
+    // 确认 Dialog 出现
+    await expect(page.locator('[data-slot="dialog-content"]:has-text("确定删除")')).toBeVisible();
+    await page.locator('[data-slot="dialog-content"] button:has-text("删除")').click();
+
     await expect(page.locator('[role="listitem"]')).toHaveCount(initialCount - 1);
   });
 });
