@@ -300,9 +300,7 @@ export default function App() {
             </div>
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">取消</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>取消</DialogClose>
             <Button
               disabled={!newName.trim()}
               onClick={() => {
@@ -328,9 +326,7 @@ export default function App() {
             确定删除「{deleteTarget?.name}」游戏配置吗？此操作不可撤销。
           </p>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">取消</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>取消</DialogClose>
             <Button variant="destructive" onClick={commitDelete}>
               删除
             </Button>
@@ -348,9 +344,7 @@ export default function App() {
             确定要重置为默认配置吗？所有自定义数据将被覆盖。
           </p>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">取消</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>取消</DialogClose>
             <Button variant="destructive" onClick={() => { reset(); setResetOpen(false); }}>
               重置
             </Button>
@@ -366,9 +360,7 @@ export default function App() {
           </DialogHeader>
           <p className="text-sm text-muted-foreground">{importMsg}</p>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">确定</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>确定</DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

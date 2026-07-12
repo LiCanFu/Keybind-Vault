@@ -89,7 +89,7 @@ export default function CompareView({ games }: Props) {
 
       {/* 选择游戏 */}
       <div className="flex items-center gap-3">
-        <Select value={aId} onValueChange={setAId}>
+        <Select value={aId} onValueChange={(v) => setAId(v ?? '')}>
           <SelectTrigger className="w-[200px]" aria-label="选择游戏 A">
             <SelectValue placeholder="选择游戏 A" />
           </SelectTrigger>
@@ -102,7 +102,7 @@ export default function CompareView({ games }: Props) {
 
         <Badge variant="outline" className="px-3 py-1 text-xs font-bold">VS</Badge>
 
-        <Select value={bId} onValueChange={setBId}>
+        <Select value={bId} onValueChange={(v) => setBId(v ?? '')}>
           <SelectTrigger className="w-[200px]" aria-label="选择游戏 B">
             <SelectValue placeholder="选择游戏 B" />
           </SelectTrigger>
@@ -139,9 +139,9 @@ export default function CompareView({ games }: Props) {
             {/* 表头 */}
             <div role="row" className="flex items-center gap-3 px-4 py-1">
               <div role="columnheader" className="shrink-0 w-16 text-xs font-medium text-muted-foreground">按键</div>
-              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameA.name}</div>
+              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameA?.name}</div>
               <div role="columnheader" className="shrink-0 w-8" />
-              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameB.name}</div>
+              <div role="columnheader" className="flex-1 text-xs font-medium text-muted-foreground">{gameB?.name}</div>
               <div role="columnheader" className="shrink-0 w-10 text-xs font-medium text-muted-foreground">状态</div>
             </div>
             {comparison.map((row) => {

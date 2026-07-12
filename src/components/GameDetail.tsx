@@ -213,9 +213,8 @@ export default function GameDetail({
           />
         </div>
         <ToggleGroup
-          type="single"
-          value={filterCategory}
-          onValueChange={(v) => { if (v) setFilterCategory(v as KeyCategory | 'all'); }}
+          value={[filterCategory]}
+          onValueChange={(v) => { const next = v[0]; if (next) setFilterCategory(next as KeyCategory | 'all'); }}
           className="flex-wrap"
         >
           <ToggleGroupItem value="all" size="sm">全部</ToggleGroupItem>
@@ -315,9 +314,7 @@ export default function GameDetail({
             />
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">取消</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>取消</DialogClose>
             <Button onClick={commitKeyEdit} disabled={!keyEditNewKey.trim()}>
               确认修改
             </Button>
@@ -335,9 +332,7 @@ export default function GameDetail({
             确定删除「{deleteTarget?.action}」键位吗？此操作不可撤销。
           </p>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">取消</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>取消</DialogClose>
             <Button variant="destructive" onClick={commitDelete}>
               删除
             </Button>

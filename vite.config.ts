@@ -6,6 +6,11 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // dev 服务器端口与 playwright.config.ts 的 webServer 保持一致，确保 E2E 冷启动可用
+  server: {
+    port: 5174,
+    strictPort: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
