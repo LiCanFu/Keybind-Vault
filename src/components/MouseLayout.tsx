@@ -1,19 +1,12 @@
 import { useState } from 'react';
-import type { Keybinding, KeyCategory } from '@/types';
-import { CATEGORY_LABELS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '@/types';
+import type { Keybinding } from '@/types';
+import { KEY_DISPLAY_NAMES } from '@/types';
 import { CATEGORY_ICONS_MAP } from '@/icons';
 import { useKeybindingEditor } from '@/hooks/useKeybindingEditor';
+import BottomEditBar from './BottomEditBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Mouse } from 'lucide-react';
 
 interface Props {
@@ -42,7 +35,6 @@ const MOUSE_AREAS: MouseArea[] = [
 
 export default function MouseLayout({
   keybindings,
-  highlightKeys,
   onUpdateKeybinding,
   onRemoveKeybinding,
   onAddKeybinding,
@@ -62,8 +54,6 @@ export default function MouseLayout({
     handleBlur,
     handleKeyDown,
   } = useKeybindingEditor({ keybindings, onUpdateKeybinding, onRemoveKeybinding, onAddKeybinding });
-
-  const editingCatIcon = editing ? CATEGORY_ICONS_MAP[editing.category] : null;
 
   return (
     <Card>
@@ -281,53 +271,18 @@ export default function MouseLayout({
 
         {/* 底部操作栏 */}
         {editing && (
-          <div
-            ref={bottomBarRef}
-            className="flex w-full items-center gap-3 rounded-lg border bg-muted/50 p-3"
-          >
-            <Badge variant="outline" className="shrink-0 font-mono">
-              {KEY_DISPLAY_NAMES[editing.code] || editing.code}
-            </Badge>
-
-            <div className="flex items-center gap-2">
-              {editingCatIcon && <editingCatIcon className="size-4 text-muted-foreground" />}
-              <Select
-                value={editing.category}
-                onValueChange={(v) => updateCategory(v as KeyCategory)}
-              >
-                <SelectTrigger className="h-8 w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORY_ORDER.map((cat) => {
-                    const CatItemIcon = CATEGORY_ICONS_MAP[cat];
-                    return (
-                      <SelectItem key={cat} value={cat}>
-                        <span className="flex items-center gap-1.5">
-                          <CatItemIcon className="size-3.5" />
-                          {CATEGORY_LABELS[cat]}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="ml-auto flex gap-2">
-              {editing.index >= 0 && (
-                <Button size="sm" variant="destructive" onClick={remove}>
-                  删除
-                </Button>
-              )}
-              <Button size="sm" variant="outline" onClick={() => setEditing(null)}>
-                取消
-              </Button>
-              <Button size="sm" onClick={save} disabled={!editing.action.trim()}>
-                {editing.index >= 0 ? '保存' : '绑定'}
-              </Button>
-            </div>
-          </div>
+          <BottomEditBar
+            code={editing.code}
+            displayKey={KEY_DISPLAY_NAMES[editing.code] || editing.code}
+            index={editing.index}
+            category={editing.category}
+            actionTrimmed={!!editing.action.trim()}
+            onCategoryChange={updateCategory}
+            onSave={save}
+            onRemove={remove}
+            onCancel={() => setEditing(null)}
+            bottomBarRef={bottomBarRef}
+          />
         )}
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import type { Keybinding, KeyCategory } from '../types';
-import { inferCategory } from '../utils/categoryInfer';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import type { Keybinding, KeyCategory } from '@/types';
+import { inferCategory } from '@/utils/categoryInfer';
 
 /** 键位编辑器共享状态 */
 export interface EditingKey {
@@ -36,8 +36,11 @@ export function useKeybindingEditor({
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
 
-  const kbMap = new Map<string, KbMapEntry>();
-  keybindings.forEach((kb, idx) => kbMap.set(kb.key, { binding: kb, index: idx }));
+  const kbMap = useMemo(() => {
+    const m = new Map<string, KbMapEntry>();
+    keybindings.forEach((kb, idx) => m.set(kb.key, { binding: kb, index: idx }));
+    return m;
+  }, [keybindings]);
 
   // 编辑态自动聚焦
   useEffect(() => {

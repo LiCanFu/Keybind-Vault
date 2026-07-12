@@ -60,9 +60,11 @@ export function useGameConfigs() {
   }, []);
 
   const updateKeybinding = useCallback((gameId: string, index: number, kb: Keybinding) => {
+    if (index < 0) return;
     setGames((prev) =>
       prev.map((g) => {
         if (g.id !== gameId) return g;
+        if (index >= g.keybindings.length) return g; // 越界忽略
         const kbs = [...g.keybindings];
         kbs[index] = kb;
         return { ...g, keybindings: kbs, updatedAt: new Date().toISOString() };
@@ -97,7 +99,7 @@ export function useGameConfigs() {
   }, []);
 
   const reset = useCallback(() => {
-    setGames(ALL_PRESETS);
+    setGames(structuredClone(ALL_PRESETS));
   }, []);
 
   return {

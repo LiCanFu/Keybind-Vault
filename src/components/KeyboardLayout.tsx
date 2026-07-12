@@ -3,15 +3,7 @@ import type { Keybinding, KeyCategory } from '../types';
 import { KEY_DISPLAY_NAMES, KEYBOARD_ROWS, CATEGORY_LABELS, CATEGORY_ORDER } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
 import { useKeybindingEditor } from '@/hooks/useKeybindingEditor';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import BottomEditBar from './BottomEditBar';
 
 interface Props {
   keybindings: Keybinding[];
@@ -176,52 +168,18 @@ export default function KeyboardLayout({
 
       {/* 底部操作栏 — 编辑态时显示分类切换和保存/删除 */}
       {editing && (
-        <div
-          ref={bottomBarRef}
-          className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3"
-          style={{ marginTop: 8 }}
-        >
-          <Badge variant="outline" className="shrink-0 font-mono">
-            {KEY_DISPLAY_NAMES[editing.code] || editing.code}
-          </Badge>
-
-          <span className="text-xs text-muted-foreground">分类：</span>
-          <Select
-            value={editing.category}
-            onValueChange={(v) => updateCategory(v as KeyCategory)}
-          >
-            <SelectTrigger className="h-7 w-[100px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORY_ORDER.map((cat) => {
-                const CatItemIcon = CATEGORY_ICONS_MAP[cat];
-                return (
-                  <SelectItem key={cat} value={cat}>
-                    <span className="flex items-center gap-1.5">
-                      <CatItemIcon className="size-3" />
-                      {CATEGORY_LABELS[cat]}
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-
-          <div className="ml-auto flex gap-1.5">
-            {editing.index >= 0 && (
-              <Button size="sm" variant="destructive" onClick={remove}>
-                删除
-              </Button>
-            )}
-            <Button size="sm" variant="outline" onClick={() => setEditing(null)}>
-              取消
-            </Button>
-            <Button size="sm" onClick={save} disabled={!editing.action.trim()}>
-              {editing.index >= 0 ? '保存' : '绑定'}
-            </Button>
-          </div>
-        </div>
+        <BottomEditBar
+          code={editing.code}
+          displayKey={KEY_DISPLAY_NAMES[editing.code] || editing.code}
+          index={editing.index}
+          category={editing.category}
+          actionTrimmed={!!editing.action.trim()}
+          onCategoryChange={updateCategory}
+          onSave={save}
+          onRemove={remove}
+          onCancel={() => setEditing(null)}
+          bottomBarRef={bottomBarRef}
+        />
       )}
     </div>
   );
