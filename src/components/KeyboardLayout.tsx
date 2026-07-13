@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, memo } from 'react';
 import type { Keybinding, KeyCategory } from '../types';
 import { KEY_DISPLAY_NAMES, KEYBOARD_ROWS, CATEGORY_LABELS, CATEGORY_ORDER } from '../types';
 import { CATEGORY_ICONS_MAP } from '../icons';
@@ -7,15 +7,13 @@ import BottomEditBar from './BottomEditBar';
 
 interface Props {
   keybindings: Keybinding[];
-  highlightKeys: Set<string>;
   onUpdateKeybinding?: (index: number, kb: Keybinding) => void;
   onRemoveKeybinding?: (index: number) => void;
   onAddKeybinding?: (kb: Keybinding) => void;
 }
 
-export default function KeyboardLayout({
+function KeyboardLayout({
   keybindings,
-  highlightKeys,
   onUpdateKeybinding,
   onRemoveKeybinding,
   onAddKeybinding,
@@ -42,7 +40,7 @@ export default function KeyboardLayout({
           {row.map((key) => {
             const entry = kbMap.get(key.code);
             const kb = entry?.binding;
-            const isBound = highlightKeys.has(key.code);
+            const isBound = !!kb;
             const catColor = kb ? `var(--cat-${kb.category})` : undefined;
             const CatIcon = kb ? CATEGORY_ICONS_MAP[kb.category] : null;
             const isEditing = editing?.code === key.code;
@@ -184,3 +182,5 @@ export default function KeyboardLayout({
     </div>
   );
 }
+
+export default memo(KeyboardLayout);

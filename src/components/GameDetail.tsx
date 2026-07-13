@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import type { GameConfig, Keybinding, KeyCategory } from '@/types';
 import { CATEGORY_LABELS, CATEGORY_ORDER, KEY_DISPLAY_NAMES } from '@/types';
 import { CATEGORY_ICONS_MAP, ActionIcons } from '@/icons';
@@ -159,7 +159,20 @@ export default function GameDetail({
     return acc;
   }, [filtered]);
 
-  const boundKeys = useMemo(() => new Set(game.keybindings.map((k) => k.key)), [game.keybindings]);
+  // 键盘/鼠标布局共用的键位回调；useCallback 保持引用稳定，配合子组件 memo 化，
+  // 避免搜索/筛选输入触发这两个可视化组件的无谓重渲染
+  const handleUpdateKb = useCallback(
+    (index: number, kb: Keybinding) => onUpdateKeybinding(game.id, index, kb),
+    [game.id, onUpdateKeybinding],
+  );
+  const handleRemoveKb = useCallback(
+    (index: number) => onRemoveKeybinding(game.id, index),
+    [game.id, onRemoveKeybinding],
+  );
+  const handleAddKb = useCallback(
+    (kb: Keybinding) => onAddKeybinding(game.id, kb),
+    [game.id, onAddKeybinding],
+  );
 
   return (
     <div className="mx-auto max-w-[1000px] space-y-5 p-6">
@@ -183,19 +196,17 @@ export default function GameDetail({
       {/* 键盘布局 */}
       <KeyboardLayout
         keybindings={game.keybindings}
-        highlightKeys={boundKeys}
-        onUpdateKeybinding={(index, kb) => onUpdateKeybinding(game.id, index, kb)}
-        onRemoveKeybinding={(index) => onRemoveKeybinding(game.id, index)}
-        onAddKeybinding={(kb) => onAddKeybinding(game.id, kb)}
+        onUpdateKeybinding={handleUpdateKb}
+        onRemoveKeybinding={handleRemoveKb}
+        onAddKeybinding={handleAddKb}
       />
 
       {/* 鼠标布局 */}
       <MouseLayout
         keybindings={game.keybindings}
-        highlightKeys={boundKeys}
-        onUpdateKeybinding={(index, kb) => onUpdateKeybinding(game.id, index, kb)}
-        onRemoveKeybinding={(index) => onRemoveKeybinding(game.id, index)}
-        onAddKeybinding={(kb) => onAddKeybinding(game.id, kb)}
+        onUpdateKeybinding={handleUpdateKb}
+        onRemoveKeybinding={handleRemoveKb}
+        onAddKeybinding={handleAddKb}
       />
 
       <Separator />

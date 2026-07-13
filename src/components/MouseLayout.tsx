@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import type { Keybinding } from '@/types';
 import { KEY_DISPLAY_NAMES } from '@/types';
 import { CATEGORY_ICONS_MAP } from '@/icons';
@@ -11,7 +11,6 @@ import { Mouse } from 'lucide-react';
 
 interface Props {
   keybindings: Keybinding[];
-  highlightKeys: Set<string>;
   onUpdateKeybinding?: (index: number, kb: Keybinding) => void;
   onRemoveKeybinding?: (index: number) => void;
   onAddKeybinding?: (kb: Keybinding) => void;
@@ -33,7 +32,7 @@ const MOUSE_AREAS: MouseArea[] = [
   { code: 'Mouse4', label: '侧键下', rect: [15, 65, 18, 22],  tx: 24,  ty: 80 },
 ];
 
-export default function MouseLayout({
+function MouseLayout({
   keybindings,
   onUpdateKeybinding,
   onRemoveKeybinding,
@@ -288,3 +287,5 @@ export default function MouseLayout({
     </Card>
   );
 }
+
+export default memo(MouseLayout);
