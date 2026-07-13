@@ -6,6 +6,8 @@ import { ALL_PRESETS } from '../utils/presets';
 export function useGameConfigs() {
   const [games, setGames] = useState<GameConfig[]>([]);
   const [loading, setLoading] = useState(true);
+  // 持久化失败（localStorage 写满等）时的用户可见提示，null 表示无错误
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // 初始化加载，首次使用时注入预设（深拷贝防止引用污染）
   useEffect(() => {
@@ -21,7 +23,8 @@ export function useGameConfigs() {
   // 状态变更时自动持久化（避免在每个 setter 内部手动写 localStorage）
   useEffect(() => {
     if (!loading) {
-      saveGames(games);
+      const ok = saveGames(games);
+      setSaveError(ok ? null : '保存失败：本地存储空间可能已满，请先导出备份再清理部分数据。');
     }
   }, [games, loading]);
 
@@ -102,9 +105,12 @@ export function useGameConfigs() {
     setGames(structuredClone(ALL_PRESETS));
   }, []);
 
+  const clearSaveError = useCallback(() => setSaveError(null), []);
+
   return {
     games,
     loading,
+    saveError,
     addGame,
     updateGameName,
     removeGame,
@@ -114,5 +120,6 @@ export function useGameConfigs() {
     handleExport,
     handleImport,
     reset,
+    clearSaveError,
   };
 }

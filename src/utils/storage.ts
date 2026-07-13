@@ -16,13 +16,15 @@ export function loadGames(): GameConfig[] {
   return cachedGames!;
 }
 
-export function saveGames(games: GameConfig[]): void {
+export function saveGames(games: GameConfig[]): boolean {
   cachedGames = games;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+    return true;
   } catch (err) {
-    // localStorage 满时（QuotaExceededError）降级处理
+    // localStorage 满时（QuotaExceededError）降级处理，返回 false 供上层提示用户
     console.error('保存失败，localStorage 可能已满：', err);
+    return false;
   }
 }
 

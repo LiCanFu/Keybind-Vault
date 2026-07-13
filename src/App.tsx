@@ -33,6 +33,7 @@ export default function App() {
   const {
     games,
     loading,
+    saveError,
     addGame,
     updateGameName,
     removeGame,
@@ -42,6 +43,7 @@ export default function App() {
     handleExport,
     handleImport,
     reset,
+    clearSaveError,
   } = useGameConfigs();
 
   const [page, setPage] = useState<Page>('dashboard');
@@ -361,6 +363,19 @@ export default function App() {
           <p className="text-sm text-muted-foreground">{importMsg}</p>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>确定</DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 保存失败提示 Dialog */}
+      <Dialog open={!!saveError} onOpenChange={(open) => { if (!open) clearSaveError(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>保存失败</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{saveError}</p>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>知道了</DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
