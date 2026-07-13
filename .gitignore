@@ -32,3 +32,6 @@ dist
 
 # IDE
 .idea
+
+# Claude Code 本地验证工件
+.claude/verification-report.md
