@@ -142,7 +142,6 @@ test.describe('键位操作', () => {
     // 等待键位列表渲染（EditCell span 元素）
     const actionSpan = page.locator('span.cursor-text').first();
     await expect(actionSpan).toBeVisible();
-    const originalText = await actionSpan.textContent();
 
     await actionSpan.click();
 

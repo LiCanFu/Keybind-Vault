@@ -26,7 +26,6 @@
 | 样式 | Tailwind CSS 4 |
 | UI 组件 | shadcn/ui（基于 Base UI `@base-ui/react`） |
 | 图标 | Lucide React |
-| 动画 | Framer Motion |
 | 字体 | Geist（`@fontsource-variable/geist`） |
 | 静态检查 | oxlint |
 | 单元测试 | Vitest + React Testing Library |

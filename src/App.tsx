@@ -104,7 +104,7 @@ export default function App() {
             <NavIcons.Gamepad2 className="size-5" />
             Keybind Vault
           </h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">游戏键盘配置备忘录</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">游戏键鼠配置备忘录</p>
         </div>
 
         <Separator />
